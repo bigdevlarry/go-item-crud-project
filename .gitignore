@@ -1,5 +1,18 @@
 # IDE files
 .idea/
+.vscode/
+
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.npm
+.yarn-integrity
+
+# Frontend build
+frontend/dist/
+frontend/build/
 
 # Go build artifacts
 *.exe
