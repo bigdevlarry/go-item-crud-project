@@ -1,0 +1,15 @@
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+
+# Install dependencies
+RUN npm install
+
+# Expose ports for Vite dev server
+EXPOSE 5173
+EXPOSE 3000
+
+# CMD is handled by docker-compose.dev.yml
