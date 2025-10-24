@@ -1,7 +1,9 @@
 <script setup lang="ts">
-import HelloWorld from '../components/HelloWorld.vue'
+import ItemsTable from '../components/ItemsTable.vue'
 </script>
 
 <template>
-  <HelloWorld msg="You did it!" />
+  <div class="space-y-6">
+    <ItemsTable />
+  </div>
 </template>
