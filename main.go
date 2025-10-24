@@ -1,9 +1,9 @@
 package main
 
 import (
-	"go-test/internal/handlers"
-	"go-test/internal/models/validators"
-	"go-test/internal/store"
+	"go-test/backend/handlers"
+	"go-test/backend/models/validators"
+	"go-test/backend/store"
 	"log"
 
 	"github.com/gin-gonic/gin"

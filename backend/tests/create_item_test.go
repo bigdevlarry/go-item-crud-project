@@ -1,7 +1,7 @@
 package tests
 
 import (
-	"go-test/internal/tests/helper"
+	"go-test/backend/tests/helper"
 	"net/http"
 	"net/http/httptest"
 	"strings"

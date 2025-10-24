@@ -1,7 +1,7 @@
 package store
 
 import (
-	"go-test/internal/models/entities"
+	"go-test/backend/models/entities"
 )
 
 type ItemsStorage interface {

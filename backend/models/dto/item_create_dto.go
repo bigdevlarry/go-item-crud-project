@@ -1,8 +1,8 @@
 package dto
 
 import (
-	"go-test/internal/models/entities"
-	"go-test/internal/models/enums"
+	"go-test/backend/models/entities"
+	"go-test/backend/models/enums"
 )
 
 type ItemCreateDTO struct {

@@ -1,9 +1,9 @@
 package tests
 
 import (
-	"go-test/internal/models/entities"
-	"go-test/internal/models/enums"
-	"go-test/internal/tests/helper"
+	"go-test/backend/models/entities"
+	"go-test/backend/models/enums"
+	"go-test/backend/tests/helper"
 	"net/http"
 	"net/http/httptest"
 	"testing"

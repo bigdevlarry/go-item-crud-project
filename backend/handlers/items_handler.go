@@ -1,10 +1,10 @@
 package handlers
 
 import (
-	"go-test/internal/models/dto"
-	"go-test/internal/models/entities"
-	"go-test/internal/models/enums"
-	"go-test/internal/store"
+	"go-test/backend/models/dto"
+	"go-test/backend/models/entities"
+	"go-test/backend/models/enums"
+	"go-test/backend/store"
 	"net/http"
 	"strconv"
 	"strings"

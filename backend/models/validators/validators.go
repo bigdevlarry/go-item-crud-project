@@ -1,7 +1,7 @@
 package validators
 
 import (
-	"go-test/internal/models/enums"
+	"go-test/backend/models/enums"
 
 	"github.com/go-playground/validator/v10"
 )
