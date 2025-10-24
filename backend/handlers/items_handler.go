@@ -3,7 +3,6 @@ package handlers
 import (
 	"go-test/backend/models/dto"
 	"go-test/backend/models/entities"
-	"go-test/backend/models/enums"
 	"go-test/backend/store"
 	"net/http"
 	"strconv"
@@ -26,13 +25,10 @@ func NewItemsHandler(storage store.ItemsStorage) *ItemsHandler {
 
 func (h *ItemsHandler) GetAll(c *gin.Context) {
 	limitStr := c.Query("limit")
+	query := c.Query("query")
 	limit := 10 // Default limit
 
-	searchGUID := c.Query("guid")
-	searchType := c.Query("type")
-	searchStatus := c.Query("status")
-
-	hasFilters := searchGUID != "" || searchType != "" || searchStatus != ""
+	hasFilters := query != ""
 
 	if limitStr != "" {
 		limit, err := strconv.Atoi(limitStr)
@@ -55,17 +51,21 @@ func (h *ItemsHandler) GetAll(c *gin.Context) {
 
 	var filteredItems []entities.Item
 	for _, item := range items {
-		if searchGUID != "" && !strings.Contains(item.GUID, searchGUID) {
-			continue
-		}
-		if searchType != "" && item.Type != enums.ItemType(searchType) {
-			continue
-		}
-		if searchStatus != "" && item.Status != enums.ItemStatus(searchStatus) {
+		// If no query, include all items
+		if query == "" {
+			filteredItems = append(filteredItems, item)
 			continue
 		}
 
-		filteredItems = append(filteredItems, item)
+		// use query param
+		queryLower := strings.ToLower(query)
+		matches := strings.Contains(strings.ToLower(item.GUID), queryLower) ||
+			strings.Contains(strings.ToLower(string(item.Type)), queryLower) ||
+			strings.Contains(strings.ToLower(string(item.Status)), queryLower)
+
+		if matches {
+			filteredItems = append(filteredItems, item)
+		}
 	}
 
 	if hasFilters && len(filteredItems) == 0 {
@@ -77,10 +77,10 @@ func (h *ItemsHandler) GetAll(c *gin.Context) {
 	}
 
 	if limit < len(filteredItems) {
-		items = filteredItems[:limit]
+		filteredItems = filteredItems[:limit]
 	}
 
-	c.JSON(http.StatusOK, items)
+	c.JSON(http.StatusOK, filteredItems)
 }
 
 func (h *ItemsHandler) GetByGUID(c *gin.Context) {
@@ -138,7 +138,6 @@ func (h *ItemsHandler) Create(c *gin.Context) {
 func (h *ItemsHandler) Update(c *gin.Context) {
 	guid := c.Param("guid")
 
-	// Check if item exists first
 	existingItem, err := h.storage.GetByGUID(guid)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})

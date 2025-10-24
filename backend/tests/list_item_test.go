@@ -47,9 +47,9 @@ func TestItemsListAndFilter(t *testing.T) {
 		assert.Equal(t, http.StatusOK, w.Code)
 	})
 
-	t.Run("It can filter items by GUID", func(t *testing.T) {
+	t.Run("It can filter items by GUID using global search", func(t *testing.T) {
 		// Arrange
-		req := httptest.NewRequest(http.MethodGet, "/items?guid=test-guid&limit=5", nil)
+		req := httptest.NewRequest(http.MethodGet, "/items?query=test-guid&limit=5", nil)
 		w := httptest.NewRecorder()
 
 		// Act
@@ -59,9 +59,9 @@ func TestItemsListAndFilter(t *testing.T) {
 		assert.Equal(t, http.StatusOK, w.Code)
 	})
 
-	t.Run("It can filter items by type", func(t *testing.T) {
+	t.Run("It can filter items by type using global search", func(t *testing.T) {
 		// Arrange
-		req := httptest.NewRequest(http.MethodGet, "/items?type=ADMISSION&limit=5", nil)
+		req := httptest.NewRequest(http.MethodGet, "/items?query=ADMISSION&limit=5", nil)
 		w := httptest.NewRecorder()
 
 		// Act
@@ -71,9 +71,9 @@ func TestItemsListAndFilter(t *testing.T) {
 		assert.Equal(t, http.StatusOK, w.Code)
 	})
 
-	t.Run("It can filter items by status", func(t *testing.T) {
+	t.Run("It can filter items by status using global search", func(t *testing.T) {
 		// Arrange
-		req := httptest.NewRequest(http.MethodGet, "/items?status=ACCEPTED&limit=5", nil)
+		req := httptest.NewRequest(http.MethodGet, "/items?query=ACCEPTED&limit=5", nil)
 		w := httptest.NewRecorder()
 
 		// Act
@@ -83,9 +83,9 @@ func TestItemsListAndFilter(t *testing.T) {
 		assert.Equal(t, http.StatusOK, w.Code)
 	})
 
-	t.Run("It can filter items by type and status", func(t *testing.T) {
+	t.Run("It can filter items by partial match using global search", func(t *testing.T) {
 		// Arrange
-		req := httptest.NewRequest(http.MethodGet, "/items?type=ADMISSION&status=ACCEPTED&limit=5", nil)
+		req := httptest.NewRequest(http.MethodGet, "/items?query=test&limit=5", nil)
 		w := httptest.NewRecorder()
 
 		// Act
@@ -95,22 +95,9 @@ func TestItemsListAndFilter(t *testing.T) {
 		assert.Equal(t, http.StatusOK, w.Code)
 	})
 
-	t.Run("It returns empty results when no items match GUID filter", func(t *testing.T) {
+	t.Run("It returns empty results when no items match query", func(t *testing.T) {
 		// Arrange
-		req := httptest.NewRequest(http.MethodGet, "/items?guid=nonexistent-guid", nil)
-		w := httptest.NewRecorder()
-
-		// Act
-		r.ServeHTTP(w, req)
-
-		// Assert
-		assert.Equal(t, http.StatusOK, w.Code)
-		assert.Contains(t, w.Body.String(), "No items found")
-	})
-
-	t.Run("It returns empty results when no items match status filter", func(t *testing.T) {
-		// Arrange
-		req := httptest.NewRequest(http.MethodGet, "/items?status=NONEXISTENT_STATUS", nil)
+		req := httptest.NewRequest(http.MethodGet, "/items?query=nonexistent", nil)
 		w := httptest.NewRecorder()
 
 		// Act
@@ -121,9 +108,9 @@ func TestItemsListAndFilter(t *testing.T) {
 		assert.Contains(t, w.Body.String(), "No items found")
 	})
 
-	t.Run("It returns empty results when no items match type filter", func(t *testing.T) {
+	t.Run("It returns empty results when query matches no items", func(t *testing.T) {
 		// Arrange
-		req := httptest.NewRequest(http.MethodGet, "/items?type=NONEXISTENT_TYPE", nil)
+		req := httptest.NewRequest(http.MethodGet, "/items?query=NONEXISTENT", nil)
 		w := httptest.NewRecorder()
 
 		// Act
@@ -134,9 +121,9 @@ func TestItemsListAndFilter(t *testing.T) {
 		assert.Contains(t, w.Body.String(), "No items found")
 	})
 
-	t.Run("It returns empty results when no items match multiple filters", func(t *testing.T) {
+	t.Run("It returns empty results when partial query matches no items", func(t *testing.T) {
 		// Arrange
-		req := httptest.NewRequest(http.MethodGet, "/items?type=ADMISSION&status=DECLINED", nil)
+		req := httptest.NewRequest(http.MethodGet, "/items?query=XYZ", nil)
 		w := httptest.NewRecorder()
 
 		// Act
