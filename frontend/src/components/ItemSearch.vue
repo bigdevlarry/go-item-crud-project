@@ -16,6 +16,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
+import { useItemsStore } from '../stores/items'
 import type { ItemSearchProps } from '../types/components'
 
 interface Props {
@@ -29,8 +30,15 @@ interface Emits {
 const props = defineProps<Props>()
 const emit = defineEmits<Emits>()
 
+// Pinia store
+const itemsStore = useItemsStore()
+
 const searchValue = computed({
   get: () => props.modelValue,
-  set: (value: string) => emit('update:modelValue', value)
+  set: (value: string) => {
+    emit('update:modelValue', value)
+    // Update the store's search query
+    itemsStore.setSearchQuery(value)
+  }
 })
 </script>

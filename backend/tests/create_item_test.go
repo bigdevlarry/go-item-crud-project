@@ -347,6 +347,86 @@ func TestItCanCreateAnItem(t *testing.T) {
 	})
 }
 
+func TestItAcceptsCaseInsensitiveEnums(t *testing.T) {
+	r, _ := helper.SetupReadRouter()
+
+	t.Run("It accepts lowercase enum values", func(t *testing.T) {
+		// Arrange
+		payload := `{
+			"amount": 100,
+			"type": "admission",
+			"status": "accepted",
+			"attributes": {
+				"debtor": {
+					"first_name": "John",
+					"last_name": "Doe",
+					"account": {
+						"sort_code": "123456",
+						"account_number": "12345678"
+					}
+				},
+				"beneficiary": {
+					"first_name": "Jane",
+					"last_name": "Smith",
+					"account": {
+						"sort_code": "876543",
+						"account_number": "87654321"
+					}
+				}
+			}
+		}`
+		req := httptest.NewRequest(http.MethodPost, "/items", strings.NewReader(payload))
+		req.Header.Set("Content-Type", "application/json")
+		w := httptest.NewRecorder()
+
+		// Act
+		r.ServeHTTP(w, req)
+
+		// Assert
+		assert.Equal(t, http.StatusCreated, w.Code)
+		assert.Contains(t, w.Body.String(), `"type":"ADMISSION"`)
+		assert.Contains(t, w.Body.String(), `"status":"ACCEPTED"`)
+	})
+
+	t.Run("It accepts mixed case enum values", func(t *testing.T) {
+		// Arrange
+		payload := `{
+			"amount": 100,
+			"type": "SuBmIsSiOn",
+			"status": "DeClInEd",
+			"attributes": {
+				"debtor": {
+					"first_name": "John",
+					"last_name": "Doe",
+					"account": {
+						"sort_code": "123456",
+						"account_number": "12345678"
+					}
+				},
+				"beneficiary": {
+					"first_name": "Jane",
+					"last_name": "Smith",
+					"account": {
+						"sort_code": "876543",
+						"account_number": "87654321"
+					}
+				}
+			}
+		}`
+		req := httptest.NewRequest(http.MethodPost, "/items", strings.NewReader(payload))
+		req.Header.Set("Content-Type", "application/json")
+		w := httptest.NewRecorder()
+
+		// Act
+		r.ServeHTTP(w, req)
+
+		// Assert
+		assert.Equal(t, http.StatusCreated, w.Code)
+		assert.Contains(t, w.Body.String(), `"type":"SUBMISSION"`)
+		assert.Contains(t, w.Body.String(), `"status":"DECLINED"`)
+	})
+}
+
 func createValidCreatePayload() string {
 	return `{
 		"amount": 100,

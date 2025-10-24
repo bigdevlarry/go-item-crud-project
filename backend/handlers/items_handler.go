@@ -3,6 +3,7 @@ package handlers
 import (
 	"go-test/backend/models/dto"
 	"go-test/backend/models/entities"
+	"go-test/backend/models/enums"
 	"go-test/backend/store"
 	"net/http"
 	"strconv"
@@ -20,6 +21,22 @@ type ItemsHandler struct {
 func NewItemsHandler(storage store.ItemsStorage) *ItemsHandler {
 	return &ItemsHandler{
 		storage: storage,
+	}
+}
+
+// normalizeEnumValues converts enum strings to uppercase for case-insensitive handling
+func normalizeEnumValues(createDTO *dto.ItemCreateDTO) {
+	createDTO.Type = enums.ItemType(strings.ToUpper(string(createDTO.Type)))
+	createDTO.Status = enums.ItemStatus(strings.ToUpper(string(createDTO.Status)))
+}
+
+// normalizeUpdateEnumValues converts enum strings to uppercase for case-insensitive handling
+func normalizeUpdateEnumValues(updateDTO *dto.ItemUpdateDTO) {
+	if updateDTO.Type != nil {
+		*updateDTO.Type = enums.ItemType(strings.ToUpper(string(*updateDTO.Type)))
+	}
+	if updateDTO.Status != nil {
+		*updateDTO.Status = enums.ItemStatus(strings.ToUpper(string(*updateDTO.Status)))
 	}
 }
 
@@ -109,6 +126,9 @@ func (h *ItemsHandler) Create(c *gin.Context) {
 		return
 	}
 
+	// Normalize enum values to uppercase for case-insensitive handling
+	normalizeEnumValues(&createDTO)
+
 	existingItems, err := h.storage.GetAll()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -154,6 +174,9 @@ func (h *ItemsHandler) Update(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+
+	// Normalize enum values to uppercase for case-insensitive handling
+	normalizeUpdateEnumValues(&updateDTO)
 
 	if updateDTO.Amount != nil {
 		existingItem.Amount = *updateDTO.Amount

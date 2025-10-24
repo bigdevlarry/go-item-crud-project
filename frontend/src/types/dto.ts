@@ -17,27 +17,3 @@ export interface ItemUpdateDTO {
   attributes?: Partial<Attributes>
 }
 
-export interface ItemFormData {
-  amount: string
-  type: string
-  status: string
-  created: string
-  attributes: {
-    debtor: {
-      first_name: string
-      last_name: string
-      account: {
-        sort_code: string
-        account_number: string
-      }
-    }
-    beneficiary: {
-      first_name: string
-      last_name: string
-      account: {
-        sort_code: string
-        account_number: string
-      }
-    }
-  }
-}
