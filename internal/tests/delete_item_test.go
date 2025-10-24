@@ -1,7 +1,7 @@
 package tests
 
 import (
-	"go-test/internal/models"
+	"go-test/internal/models/entities"
 	"go-test/internal/models/enums"
 	"go-test/internal/tests/helper"
 	"net/http"
@@ -14,7 +14,7 @@ import (
 func TestItCanDeleteAnItem(t *testing.T) {
 	r, s := helper.SetupReadRouter()
 
-	item := &models.Item{
+	item := &entities.Item{
 		GUID:   "test-guid-123",
 		Amount: 100,
 		Type:   enums.ADMISSION,

@@ -1,7 +1,8 @@
 package handlers
 
 import (
-	"go-test/internal/models"
+	"go-test/internal/models/dto"
+	"go-test/internal/models/entities"
 	"go-test/internal/models/enums"
 	"go-test/internal/store"
 	"net/http"
@@ -52,7 +53,7 @@ func (h *ItemsHandler) GetAll(c *gin.Context) {
 		return
 	}
 
-	var filteredItems []models.Item
+	var filteredItems []entities.Item
 	for _, item := range items {
 		if searchGUID != "" && !strings.Contains(item.GUID, searchGUID) {
 			continue
@@ -70,7 +71,7 @@ func (h *ItemsHandler) GetAll(c *gin.Context) {
 	if hasFilters && len(filteredItems) == 0 {
 		c.JSON(http.StatusOK, gin.H{
 			"message": "No items found",
-			"items":   []models.Item{},
+			"items":   []entities.Item{},
 		})
 		return
 	}
@@ -96,12 +97,12 @@ func (h *ItemsHandler) GetByGUID(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, []models.Item{*item})
+	c.JSON(http.StatusOK, []entities.Item{*item})
 }
 
 // Create creates a new item
 func (h *ItemsHandler) Create(c *gin.Context) {
-	var createDTO models.ItemCreateDTO
+	var createDTO dto.ItemCreateDTO
 
 	if err := c.ShouldBindJSON(&createDTO); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -115,7 +116,7 @@ func (h *ItemsHandler) Create(c *gin.Context) {
 	}
 
 	// Convert DTO to Item, so we can add system fields
-	item := &models.Item{
+	item := &entities.Item{
 		GUID:       uuid.New().String(),
 		Amount:     createDTO.Amount,
 		Type:       createDTO.Type,
@@ -130,7 +131,7 @@ func (h *ItemsHandler) Create(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, []models.Item{*item})
+	c.JSON(http.StatusCreated, []entities.Item{*item})
 }
 
 // Update updates an existing item
@@ -149,7 +150,7 @@ func (h *ItemsHandler) Update(c *gin.Context) {
 		return
 	}
 
-	var updateDTO models.ItemUpdateDTO
+	var updateDTO dto.ItemUpdateDTO
 	if err := c.ShouldBindJSON(&updateDTO); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -174,7 +175,7 @@ func (h *ItemsHandler) Update(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, []models.Item{*existingItem})
+	c.JSON(http.StatusOK, []entities.Item{*existingItem})
 }
 
 // Delete deletes an item

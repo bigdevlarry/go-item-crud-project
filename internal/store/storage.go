@@ -1,29 +1,29 @@
 package store
 
 import (
-	"go-test/internal/models"
+	"go-test/internal/models/entities"
 )
 
 type ItemsStorage interface {
-	GetAll() ([]models.Item, error)
-	GetByGUID(guid string) (*models.Item, error)
-	Create(item *models.Item) error
-	Update(item *models.Item) error
+	GetAll() ([]entities.Item, error)
+	GetByGUID(guid string) (*entities.Item, error)
+	Create(item *entities.Item) error
+	Update(item *entities.Item) error
 	Delete(guid string) error
 }
 
 type ItemsStore struct {
-	items map[string]models.Item
+	items map[string]entities.Item
 }
 
 // NewStore creates a new items store
 func NewStore() *ItemsStore {
-	return &ItemsStore{items: make(map[string]models.Item)}
+	return &ItemsStore{items: make(map[string]entities.Item)}
 }
 
 // GetAll returns all items
-func (is *ItemsStore) GetAll() ([]models.Item, error) {
-	items := make([]models.Item, 0, len(is.items))
+func (is *ItemsStore) GetAll() ([]entities.Item, error) {
+	items := make([]entities.Item, 0, len(is.items))
 	for _, item := range is.items {
 		items = append(items, item)
 	}
@@ -31,7 +31,7 @@ func (is *ItemsStore) GetAll() ([]models.Item, error) {
 }
 
 // GetByGUID returns an item by GUID
-func (is *ItemsStore) GetByGUID(guid string) (*models.Item, error) {
+func (is *ItemsStore) GetByGUID(guid string) (*entities.Item, error) {
 	item, exists := is.items[guid]
 	if !exists {
 		return nil, nil // Item not found
@@ -40,13 +40,13 @@ func (is *ItemsStore) GetByGUID(guid string) (*models.Item, error) {
 }
 
 // Create adds a new item
-func (is *ItemsStore) Create(item *models.Item) error {
+func (is *ItemsStore) Create(item *entities.Item) error {
 	is.items[item.GUID] = *item
 	return nil
 }
 
 // Update updates an item by a given GUID
-func (is *ItemsStore) Update(item *models.Item) error {
+func (is *ItemsStore) Update(item *entities.Item) error {
 	is.items[item.GUID] = *item
 	return nil
 }
