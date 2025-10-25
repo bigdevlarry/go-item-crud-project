@@ -32,7 +32,6 @@ func TestItCanDeleteAnItem(t *testing.T) {
 
 		// Assert
 		assert.Equal(t, http.StatusOK, w.Code)
-		assert.Contains(t, w.Body.String(), "Item deleted successfully")
 	})
 
 	t.Run("It returns 404 when an item does not exist", func(t *testing.T) {

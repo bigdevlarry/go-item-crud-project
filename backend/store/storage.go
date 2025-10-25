@@ -1,8 +1,11 @@
 package store
 
 import (
+	"errors"
 	"go-test/backend/models/entities"
 )
+
+var ErrNotFound = errors.New("item not found")
 
 type ItemsStorage interface {
 	GetAll() ([]entities.Item, error)
@@ -34,7 +37,7 @@ func (is *ItemsStore) GetAll() ([]entities.Item, error) {
 func (is *ItemsStore) GetByGUID(guid string) (*entities.Item, error) {
 	item, exists := is.items[guid]
 	if !exists {
-		return nil, nil // Item not found
+		return nil, ErrNotFound
 	}
 	return &item, nil
 }

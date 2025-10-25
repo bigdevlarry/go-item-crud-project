@@ -1,9 +1,10 @@
 package handlers
 
 import (
+	"errors"
+	"go-test/backend/helpers"
 	"go-test/backend/models/dto"
 	"go-test/backend/models/entities"
-	"go-test/backend/models/enums"
 	"go-test/backend/store"
 	"net/http"
 	"strconv"
@@ -24,22 +25,6 @@ func NewItemsHandler(storage store.ItemsStorage) *ItemsHandler {
 	}
 }
 
-// normalizeEnumValues converts enum strings to uppercase for case-insensitive handling
-func normalizeEnumValues(createDTO *dto.ItemCreateDTO) {
-	createDTO.Type = enums.ItemType(strings.ToUpper(string(createDTO.Type)))
-	createDTO.Status = enums.ItemStatus(strings.ToUpper(string(createDTO.Status)))
-}
-
-// normalizeUpdateEnumValues converts enum strings to uppercase for case-insensitive handling
-func normalizeUpdateEnumValues(updateDTO *dto.ItemUpdateDTO) {
-	if updateDTO.Type != nil {
-		*updateDTO.Type = enums.ItemType(strings.ToUpper(string(*updateDTO.Type)))
-	}
-	if updateDTO.Status != nil {
-		*updateDTO.Status = enums.ItemStatus(strings.ToUpper(string(*updateDTO.Status)))
-	}
-}
-
 func (h *ItemsHandler) GetAll(c *gin.Context) {
 	limitStr := c.Query("limit")
 	query := c.Query("query")
@@ -50,19 +35,19 @@ func (h *ItemsHandler) GetAll(c *gin.Context) {
 	if limitStr != "" {
 		limit, err := strconv.Atoi(limitStr)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Invalid limit parameter"})
+			helpers.Error(c, http.StatusInternalServerError, "Invalid limit parameter")
 			return
 		}
 
 		if limit < 0 {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Invalid limit value"})
+			helpers.Error(c, http.StatusInternalServerError, "Invalid limit value")
 			return
 		}
 	}
 
 	items, err := h.storage.GetAll()
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		helpers.Error(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 
@@ -86,10 +71,7 @@ func (h *ItemsHandler) GetAll(c *gin.Context) {
 	}
 
 	if hasFilters && len(filteredItems) == 0 {
-		c.JSON(http.StatusOK, gin.H{
-			"message": "No items found",
-			"items":   []entities.Item{},
-		})
+		helpers.Respond(c, http.StatusOK, []any{})
 		return
 	}
 
@@ -97,24 +79,22 @@ func (h *ItemsHandler) GetAll(c *gin.Context) {
 		filteredItems = filteredItems[:limit]
 	}
 
-	c.JSON(http.StatusOK, filteredItems)
+	helpers.Respond(c, http.StatusOK, filteredItems)
 }
 
 func (h *ItemsHandler) GetByGUID(c *gin.Context) {
 	guid := c.Param("guid")
 
 	item, err := h.storage.GetByGUID(guid)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	if errors.Is(err, store.ErrNotFound) {
+		helpers.Error(c, http.StatusNotFound, "Item not found")
+		return
+	} else if err != nil {
+		helpers.Error(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	if item == nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Item not found"})
-		return
-	}
-
-	c.JSON(http.StatusOK, []entities.Item{*item})
+	helpers.Respond(c, http.StatusOK, *item)
 }
 
 // Create creates a new item
@@ -122,16 +102,15 @@ func (h *ItemsHandler) Create(c *gin.Context) {
 	var createDTO dto.ItemCreateDTO
 
 	if err := c.ShouldBindJSON(&createDTO); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		helpers.ValidationError(c, err)
 		return
 	}
 
-	// Normalize enum values to uppercase for case-insensitive handling
-	normalizeEnumValues(&createDTO)
+	helpers.NormalizeCreateDTO(&createDTO)
 
 	existingItems, err := h.storage.GetAll()
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		helpers.Error(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 
@@ -147,11 +126,11 @@ func (h *ItemsHandler) Create(c *gin.Context) {
 	}
 
 	if err := h.storage.Create(item); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		helpers.Error(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	c.JSON(http.StatusCreated, []entities.Item{*item})
+	helpers.Respond(c, http.StatusCreated, *item)
 }
 
 // Update updates an existing item
@@ -159,68 +138,63 @@ func (h *ItemsHandler) Update(c *gin.Context) {
 	guid := c.Param("guid")
 
 	existingItem, err := h.storage.GetByGUID(guid)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	if errors.Is(err, store.ErrNotFound) {
+		helpers.Error(c, http.StatusNotFound, "Item not found")
 		return
-	}
-
-	if existingItem == nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Item not found"})
+	} else if err != nil {
+		helpers.Error(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 
 	var updateDTO dto.ItemUpdateDTO
 	if err := c.ShouldBindJSON(&updateDTO); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		helpers.ValidationError(c, err)
 		return
 	}
 
-	// Normalize enum values to uppercase for case-insensitive handling
-	normalizeUpdateEnumValues(&updateDTO)
+	helpers.NormalizeUpdateDTO(&updateDTO)
 
+	updatedItem := *existingItem
 	if updateDTO.Amount != nil {
-		existingItem.Amount = *updateDTO.Amount
+		updatedItem.Amount = *updateDTO.Amount
 	}
 	if updateDTO.Type != nil {
-		existingItem.Type = *updateDTO.Type
+		updatedItem.Type = *updateDTO.Type
 	}
 	if updateDTO.Status != nil {
-		existingItem.Status = *updateDTO.Status
+		updatedItem.Status = *updateDTO.Status
 	}
 	if updateDTO.Attributes != nil {
-		existingItem.Attributes = *updateDTO.Attributes
+		updatedItem.Attributes = *updateDTO.Attributes
 	}
 
 	// Update the item
-	if err := h.storage.Update(existingItem); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	if err := h.storage.Update(&updatedItem); err != nil {
+		helpers.Error(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	c.JSON(http.StatusOK, []entities.Item{*existingItem})
+	helpers.Respond(c, http.StatusOK, updatedItem)
 }
 
 // Delete deletes an item
 func (h *ItemsHandler) Delete(c *gin.Context) {
 	guid := c.Param("guid")
 
-	item, err := h.storage.GetByGUID(guid)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	_, err := h.storage.GetByGUID(guid)
+	if errors.Is(err, store.ErrNotFound) {
+		helpers.Error(c, http.StatusNotFound, "Item not found")
 		return
-	}
-
-	if item == nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Item not found"})
+	} else if err != nil {
+		helpers.Error(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 
 	err = h.storage.Delete(guid)
 	if err != nil {
+		helpers.Error(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"message": "Item deleted successfully",
-	})
+	helpers.Respond(c, http.StatusOK, []any{})
 }

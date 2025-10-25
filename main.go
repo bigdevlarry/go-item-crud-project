@@ -1,16 +1,13 @@
 package main
 
 import (
+	"go-test/backend/bootstrap"
 	"go-test/backend/handlers"
-	"go-test/backend/models/validators"
 	"go-test/backend/store"
-	"log"
 	"time"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	"github.com/gin-gonic/gin/binding"
-	"github.com/go-playground/validator/v10"
 )
 
 func main() {
@@ -27,20 +24,8 @@ func main() {
 		MaxAge:           12 * time.Hour,
 	}))
 
-	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
-		err := v.RegisterValidation("itemtype", validators.ValidateItemType)
-		if err != nil {
-			log.Fatal("Failed to register itemtype validator:", err)
-		}
-		err = v.RegisterValidation("itemstatus", validators.ValidateItemStatus)
-		if err != nil {
-			log.Fatal("Failed to register itemstatus validator:", err)
-		}
-		err = v.RegisterValidation("sortcode", validators.ValidateSortCode)
-		if err != nil {
-			log.Fatal("Failed to register sortcode validator:", err)
-		}
-	}
+	// Register custom validators
+	bootstrap.RegisterCustomValidators()
 
 	s := store.NewStore()
 	h := handlers.NewItemsHandler(s)
