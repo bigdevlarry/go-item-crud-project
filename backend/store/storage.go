@@ -2,8 +2,10 @@ package store
 
 import (
 	"errors"
+	"go-test/backend/helpers"
 	"go-test/backend/models/entities"
 	"strings"
+	"sync"
 )
 
 var ErrNotFound = errors.New("item not found")
@@ -20,6 +22,7 @@ type ItemsStorage interface {
 
 type ItemsStore struct {
 	items map[string]entities.Item
+	mutex sync.RWMutex
 }
 
 // NewStore creates a new, thread-safe in-memory item store
@@ -31,6 +34,9 @@ func NewStore() *ItemsStore {
 
 // GetAll returns all items
 func (is *ItemsStore) GetAll() ([]entities.Item, error) {
+	is.mutex.RLock()
+	defer is.mutex.RUnlock()
+
 	items := make([]entities.Item, 0, len(is.items))
 	for _, item := range is.items {
 		items = append(items, item)
@@ -40,50 +46,39 @@ func (is *ItemsStore) GetAll() ([]entities.Item, error) {
 
 // GetAllFiltered returns filtered and limited items
 func (is *ItemsStore) GetAllFiltered(query string, limit int) ([]entities.Item, error) {
-	filteredItems := make([]entities.Item, 0)
+	is.mutex.RLock()
+	defer is.mutex.RUnlock()
 
-	// If no query, return all items (with limit applied)
-	if query == "" {
-		items := make([]entities.Item, 0, len(is.items))
-		for _, item := range is.items {
-			items = append(items, item)
-		}
+	items := helpers.CopyItems(is.items)
 
-		// Apply limit
-		if limit > 0 {
-			if limit > len(items) {
-				limit = len(items)
+	if query != "" {
+		filtered := make([]entities.Item, 0)
+		queryLower := strings.ToLower(query)
+		for _, item := range items {
+			// Pre-compute lowercase values to avoid repeated allocations
+			guidLower := strings.ToLower(item.GUID)
+			typeLower := strings.ToLower(string(item.Type))
+			statusLower := strings.ToLower(string(item.Status))
+
+			matches := strings.Contains(guidLower, queryLower) ||
+				strings.Contains(typeLower, queryLower) ||
+				strings.Contains(statusLower, queryLower)
+
+			if matches {
+				filtered = append(filtered, item)
 			}
-			items = items[:limit]
 		}
-		return items, nil
+		items = filtered
 	}
 
-	// Filter items based on query
-	queryLower := strings.ToLower(query)
-	for _, item := range is.items {
-		matches := strings.Contains(strings.ToLower(item.GUID), queryLower) ||
-			strings.Contains(strings.ToLower(string(item.Type)), queryLower) ||
-			strings.Contains(strings.ToLower(string(item.Status)), queryLower)
-
-		if matches {
-			filteredItems = append(filteredItems, item)
-		}
-	}
-
-	// Apply limit
-	if limit > 0 {
-		if limit > len(filteredItems) {
-			limit = len(filteredItems)
-		}
-		filteredItems = filteredItems[:limit]
-	}
-
-	return filteredItems, nil
+	return helpers.ApplyLimit(items, limit), nil
 }
 
 // GetByGUID returns an item by GUID
 func (is *ItemsStore) GetByGUID(guid string) (*entities.Item, error) {
+	is.mutex.RLock()
+	defer is.mutex.RUnlock()
+
 	item, exists := is.items[guid]
 	if !exists {
 		return nil, ErrNotFound
@@ -93,23 +88,54 @@ func (is *ItemsStore) GetByGUID(guid string) (*entities.Item, error) {
 
 // Count returns the total number of items
 func (is *ItemsStore) Count() (int, error) {
+	is.mutex.RLock()
+	defer is.mutex.RUnlock()
+
 	return len(is.items), nil
 }
 
 // Create adds a new item
 func (is *ItemsStore) Create(item *entities.Item) error {
+	if item == nil {
+		return errors.New("item cannot be nil")
+	}
+	if item.GUID == "" {
+		return errors.New("item GUID cannot be empty")
+	}
+
+	is.mutex.Lock()
+	defer is.mutex.Unlock()
+
 	is.items[item.GUID] = *item
 	return nil
 }
 
 // Update updates an item by a given GUID
 func (is *ItemsStore) Update(item *entities.Item) error {
+	if item == nil {
+		return errors.New("item cannot be nil")
+	}
+	if item.GUID == "" {
+		return errors.New("item GUID cannot be empty")
+	}
+
+	is.mutex.Lock()
+	defer is.mutex.Unlock()
+
+	_, exists := is.items[item.GUID]
+	if !exists {
+		return ErrNotFound
+	}
+
 	is.items[item.GUID] = *item
 	return nil
 }
 
 // Delete removes an item by GUID
 func (is *ItemsStore) Delete(guid string) error {
+	is.mutex.Lock()
+	defer is.mutex.Unlock()
+
 	_, exists := is.items[guid]
 	if !exists {
 		return ErrNotFound

@@ -86,6 +86,49 @@ func TestItCanUpdateAnItem(t *testing.T) {
 		assert.Contains(t, w.Body.String(), "Field validation for 'Status' failed on the 'itemstatus'")
 		assert.Contains(t, w.Body.String(), "Field validation for 'Type' failed on the 'itemtype'")
 	})
+
+	t.Run("It returns error when updating with nil pointer", func(t *testing.T) {
+		// Act
+		err := s.Update(nil)
+
+		// Assert
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "item cannot be nil")
+	})
+
+	t.Run("It returns error when updating item with empty GUID", func(t *testing.T) {
+		// Arrange
+		item := &entities.Item{
+			GUID:   "", // Empty GUID
+			Amount: 100,
+			Type:   enums.ADMISSION,
+			Status: enums.ACCEPTED,
+		}
+
+		// Act
+		err := s.Update(item)
+
+		// Assert
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "item GUID cannot be empty")
+	})
+
+	t.Run("It returns ErrNotFound when updating non-existent item", func(t *testing.T) {
+		// Arrange
+		item := &entities.Item{
+			GUID:   "non-existent-guid",
+			Amount: 100,
+			Type:   enums.ADMISSION,
+			Status: enums.ACCEPTED,
+		}
+
+		// Act
+		err := s.Update(item)
+
+		// Assert
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "item not found")
+	})
 }
 
 func createUpdatePayload() string {

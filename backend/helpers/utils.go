@@ -55,3 +55,18 @@ func ApplyUpdate(item *entities.Item, dto dto.ItemUpdateDTO) {
 		item.Attributes = *dto.Attributes
 	}
 }
+
+func ApplyLimit(items []entities.Item, limit int) []entities.Item {
+	if limit <= 0 || limit >= len(items) {
+		return items
+	}
+	return items[:limit]
+}
+
+func CopyItems(m map[string]entities.Item) []entities.Item {
+	items := make([]entities.Item, 0, len(m))
+	for _, item := range m {
+		items = append(items, item)
+	}
+	return items
+}

@@ -1,6 +1,8 @@
 package tests
 
 import (
+	"go-test/backend/models/entities"
+	"go-test/backend/models/enums"
 	"go-test/backend/tests/helper"
 	"net/http"
 	"net/http/httptest"
@@ -451,4 +453,34 @@ func createValidCreatePayload() string {
 			}
 		}
 	}`
+}
+
+func TestStorageValidationForCreate(t *testing.T) {
+	_, s := helper.SetupReadRouter()
+
+	t.Run("It returns error when creating item with nil pointer", func(t *testing.T) {
+		// Act
+		err := s.Create(nil)
+
+		// Assert
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "item cannot be nil")
+	})
+
+	t.Run("It returns error when creating item with empty GUID", func(t *testing.T) {
+		// Arrange
+		item := &entities.Item{
+			GUID:   "", // Empty GUID
+			Amount: 100,
+			Type:   enums.ADMISSION,
+			Status: enums.ACCEPTED,
+		}
+
+		// Act
+		err := s.Create(item)
+
+		// Assert
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "item GUID cannot be empty")
+	})
 }
