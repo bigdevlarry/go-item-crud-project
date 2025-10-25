@@ -1,8 +1,6 @@
 package helpers
 
 import (
-	"net/http"
-
 	"github.com/gin-gonic/gin"
 )
 
@@ -10,10 +8,10 @@ func Respond(c *gin.Context, status int, data any) {
 	c.JSON(status, data)
 }
 
-func Error(c *gin.Context, status int, message string) {
-	Respond(c, status, gin.H{"error": message})
+func NoContent(c *gin.Context, status int) {
+	c.Status(status)
 }
 
-func ValidationError(c *gin.Context, err error) {
-	Error(c, http.StatusBadRequest, err.Error())
+func Error(c *gin.Context, status int, message string) {
+	Respond(c, status, gin.H{"error": message})
 }

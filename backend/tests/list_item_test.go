@@ -105,7 +105,7 @@ func TestItemsListAndFilter(t *testing.T) {
 
 		// Assert
 		assert.Equal(t, http.StatusOK, w.Code)
-		assert.Contains(t, w.Body.String(), "No items found")
+		assert.Equal(t, "[]", w.Body.String())
 	})
 
 	t.Run("It returns empty results when query matches no items", func(t *testing.T) {
@@ -118,7 +118,7 @@ func TestItemsListAndFilter(t *testing.T) {
 
 		// Assert
 		assert.Equal(t, http.StatusOK, w.Code)
-		assert.Contains(t, w.Body.String(), "No items found")
+		assert.Equal(t, "[]", w.Body.String())
 	})
 
 	t.Run("It returns empty results when partial query matches no items", func(t *testing.T) {
@@ -131,7 +131,7 @@ func TestItemsListAndFilter(t *testing.T) {
 
 		// Assert
 		assert.Equal(t, http.StatusOK, w.Code)
-		assert.Contains(t, w.Body.String(), "No items found")
+		assert.Equal(t, "[]", w.Body.String())
 	})
 
 	t.Run("It returns a server error with invalid query params", func(t *testing.T) {
@@ -143,8 +143,8 @@ func TestItemsListAndFilter(t *testing.T) {
 		r.ServeHTTP(w, req)
 
 		// Assert
-		assert.Equal(t, http.StatusInternalServerError, w.Code)
-		assert.Contains(t, w.Body.String(), "Invalid limit parameter")
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+		assert.Contains(t, w.Body.String(), "invalid limit parameter")
 	})
 
 	t.Run("It returns a server error with negative query params value", func(t *testing.T) {
@@ -156,7 +156,7 @@ func TestItemsListAndFilter(t *testing.T) {
 		r.ServeHTTP(w, req)
 
 		// Assert
-		assert.Equal(t, http.StatusInternalServerError, w.Code)
-		assert.Contains(t, w.Body.String(), "Invalid limit value")
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+		assert.Contains(t, w.Body.String(), "invalid limit value")
 	})
 }
