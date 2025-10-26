@@ -264,23 +264,6 @@ const toggleItemDetails = (guid: string) => {
   selectedItemGuid.value = selectedItemGuid.value === guid ? null : guid
 }
 
-const getSimilarEntries = (currentItem: Item): Item[] => {
-  return items.value.filter(item =>
-    item.guid !== currentItem.guid &&
-    item.type === currentItem.type &&
-    item.status === currentItem.status
-  )
-}
-
-const selectAndFocusItem = (guid: string) => {
-  selectedItemGuid.value = guid
-  // Scroll to the item (you could add smooth scrolling here)
-  const element = document.querySelector(`[data-item-guid="${guid}"]`)
-  if (element) {
-    element.scrollIntoView({ behavior: 'smooth', block: 'center' })
-  }
-}
-
 onMounted(() => {
   itemsStore.fetchItems()
 })
