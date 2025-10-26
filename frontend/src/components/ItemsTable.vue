@@ -68,7 +68,6 @@
               @click="toggleItemDetails(item.guid)"
               class="hover:bg-gray-50 cursor-pointer"
               :class="{ 'bg-blue-50': selectedItemGuid === item.guid }"
-              :data-item-guid="item.guid"
             >
               <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                 {{ index + 1 }}
