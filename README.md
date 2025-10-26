@@ -50,9 +50,7 @@ go-test/
 │   │   └── validation.go     # Custom validation error formatting
 │   └── tests/                 # Test suites
 │       ├── setup.go           # Test setup and configuration
-│       ├── create_item_test.go
-│       ├── update_item_test.go
-│       └── feature/           # Feature/integration tests
+│       └── feature/           # Feature tests
 │           ├── create_item_test.go
 │           ├── update_item_test.go
 │           ├── delete_item_test.go
