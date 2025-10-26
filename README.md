@@ -18,7 +18,7 @@ This project implements a CRUD API for managing items with debtor and beneficiar
 
 **Technology Experience**:
 - **Vue.js**: Experienced with Vue 3 Composition API, Pinia, TypeScript, and modern frontend development
-- **Go**: Experienced full-stack developer applying Go idioms and the Gin framework to build robust, tested, Dockerized applications
+- **Go**: Relatively new to Go, but an experienced full-stack developer applying Go idioms and the Gin framework to build robust, tested, Dockerized applications
     - Leveraging Laravel/PHP experience (validation, DDD, repository pattern) in Go implementations
     - Utilizing Go concurrency primitives (`sync.RWMutex`) for thread-safe operations
     - Building RESTful APIs with Gin framework, custom validation, and comprehensive error handling
@@ -202,9 +202,17 @@ docker compose up --build -d
 # Check service status
 docker compose ps
 
+# View logs
+docker compose logs -f
+
 # Stop services
 docker compose down
 ```
+
+#### Service URLs
+Once the services are running, access the application at:
+- **Frontend**: http://localhost:3000
+- **Backend API**: http://localhost:8080
 
 ## 🧪 Testing Commands
 
