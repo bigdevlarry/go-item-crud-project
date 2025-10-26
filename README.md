@@ -25,7 +25,7 @@ This application follows a **Domain-Driven Design (DDD)** approach with clear se
 
 ```
 go-test/
-├── backend/                    # Go backend application
+├── backend/                   # Go backend application
 │   ├── bootstrap/             # Application initialization
 │   │   └── validators.go      # Custom validator registration
 │   ├── domain/                # Domain layer (DDD approach)
@@ -68,7 +68,7 @@ go-test/
 │   │   ├── stores/            # Pinia state management
 │   │   │   ├── items.ts
 │   │   │   └── __tests__/
-│   │   │       └── items.test.ts
+│   │   │       └── items.test.ts # Unit tests for CRUD operations
 │   │   ├── types/             # TypeScript type definitions
 │   │   │   ├── entities.ts
 │   │   │   ├── dto.ts
