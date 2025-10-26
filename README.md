@@ -265,22 +265,12 @@ Once the services are running, access the application at:
 ### Handled Edge Cases
 - **GUID Trimming**: Automatic whitespace trimming for GUID paths (`strings.TrimSpace()`)
 - **Empty GUIDs**: Returns 404 for empty or whitespace-only GUIDs
-- **Enum Validation**: Case-insensitive validation (accepts "admission", "ADMISSION", "Admission")
+- **Enum Validation**: Case-insensitive validation (accepts "admission", "ADMISSION", "AdmiSSion")
 - **Amount Validation**: Enforces positive values only (`gt=0` validation tag)
 - **Partial Search**: Supports query string matching across all item fields
-- **Limit Validation**: Handles negative values, non-numeric inputs, and enforces default limits
 - **Concurrency**: Uses `sync.RWMutex` for thread-safe operations on in-memory storage
 
 ### Current Limitations
-- **In-Memory Storage**: Data is lost on application restart (will be replaced with PostgreSQL)
-- **No Authentication**: Endpoints are publicly accessible (JWT auth to be implemented)
-- **Limited Search**: Basic string matching only (Elasticsearch integration planned)
-- **No Pagination**: All matching results returned (pagination logic to be added)
-
-## 🔮 Future Enhancements
-
-### Potential Improvements
-- **Database Integration**: Replace in-memory storage with PostgreSQL/Redis for persistence and caching
-- **Authentication System**: JWT-based authentication for production API security
-- **Logging & Monitoring**: Structured logging and application monitoring for production readiness
-- **Audit Trail**: Comprehensive audit logging for compliance and debugging
+- **In-Memory Storage**: Data is lost on application restart
+- **No Authentication**: Endpoints are publicly accessible
+- **No Pagination**: All matching results returned
