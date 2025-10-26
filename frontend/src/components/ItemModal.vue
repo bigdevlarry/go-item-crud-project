@@ -106,12 +106,11 @@
                       <input
                         type="text"
                         id="debtor_sort_code"
-                        v-model="formData.attributes.debtor.account.sort_code"
-                        @input="formatDebtorSortCode"
+                        v-model="debtorSortCode"
                         :class="[
                           'mt-1 block w-full rounded-md shadow-sm sm:text-sm',
-                          !validateSortCode(formData.attributes.debtor.account.sort_code) && formData.attributes.debtor.account.sort_code !== '' 
-                            ? 'border-red-300 focus:ring-red-500 focus:border-red-500' 
+                          !validateSortCode(formData.attributes.debtor.account.sort_code) && formData.attributes.debtor.account.sort_code !== ''
+                            ? 'border-red-300 focus:ring-red-500 focus:border-red-500'
                             : 'border-gray-300 focus:ring-indigo-500 focus:border-indigo-500'
                         ]"
                         placeholder="00-00-00"
@@ -125,12 +124,11 @@
                       <input
                         type="text"
                         id="debtor_account_number"
-                        v-model="formData.attributes.debtor.account.account_number"
-                        @input="formatDebtorAccountNumber"
+                        v-model="debtorAccountNumber"
                         :class="[
                           'mt-1 block w-full rounded-md shadow-sm sm:text-sm',
-                          !validateAccountNumber(formData.attributes.debtor.account.account_number) && formData.attributes.debtor.account.account_number !== '' 
-                            ? 'border-red-300 focus:ring-red-500 focus:border-red-500' 
+                          !validateAccountNumber(formData.attributes.debtor.account.account_number) && formData.attributes.debtor.account.account_number !== ''
+                            ? 'border-red-300 focus:ring-red-500 focus:border-red-500'
                             : 'border-gray-300 focus:ring-indigo-500 focus:border-indigo-500'
                         ]"
                         placeholder="00000000"
@@ -176,12 +174,11 @@
                       <input
                         type="text"
                         id="beneficiary_sort_code"
-                        v-model="formData.attributes.beneficiary.account.sort_code"
-                        @input="formatBeneficiarySortCode"
+                        v-model="beneficiarySortCode"
                         :class="[
                           'mt-1 block w-full rounded-md shadow-sm sm:text-sm',
-                          !validateSortCode(formData.attributes.beneficiary.account.sort_code) && formData.attributes.beneficiary.account.sort_code !== '' 
-                            ? 'border-red-300 focus:ring-red-500 focus:border-red-500' 
+                          !validateSortCode(formData.attributes.beneficiary.account.sort_code) && formData.attributes.beneficiary.account.sort_code !== ''
+                            ? 'border-red-300 focus:ring-red-500 focus:border-red-500'
                             : 'border-gray-300 focus:ring-indigo-500 focus:border-indigo-500'
                         ]"
                         placeholder="00-00-00"
@@ -195,12 +192,11 @@
                       <input
                         type="text"
                         id="beneficiary_account_number"
-                        v-model="formData.attributes.beneficiary.account.account_number"
-                        @input="formatBeneficiaryAccountNumber"
+                        v-model="beneficiaryAccountNumber"
                         :class="[
                           'mt-1 block w-full rounded-md shadow-sm sm:text-sm',
-                          !validateAccountNumber(formData.attributes.beneficiary.account.account_number) && formData.attributes.beneficiary.account.account_number !== '' 
-                            ? 'border-red-300 focus:ring-red-500 focus:border-red-500' 
+                          !validateAccountNumber(formData.attributes.beneficiary.account.account_number) && formData.attributes.beneficiary.account.account_number !== ''
+                            ? 'border-red-300 focus:ring-red-500 focus:border-red-500'
                             : 'border-gray-300 focus:ring-indigo-500 focus:border-indigo-500'
                         ]"
                         placeholder="00000000"
@@ -285,42 +281,45 @@ const toast = useToast()
 
 const isSubmitting = ref(false)
 
-const error = computed(() => itemsStore.error)
 const isEditMode = computed(() => !!props.item)
 
 // Populate form when item changes (for edit mode)
 watch(() => props.item, (newItem) => {
   if (newItem) {
-    formData.amount = newItem.amount
-    formData.type = newItem.type
-    formData.status = newItem.status
-    formData.created = new Date(newItem.created).toISOString().slice(0, 16)
-    formData.attributes.debtor.first_name = newItem.attributes.debtor.first_name
-    formData.attributes.debtor.last_name = newItem.attributes.debtor.last_name
-    formData.attributes.debtor.account.sort_code = newItem.attributes.debtor.account.sort_code
-    formData.attributes.debtor.account.account_number = newItem.attributes.debtor.account.account_number
-    formData.attributes.beneficiary.first_name = newItem.attributes.beneficiary.first_name
-    formData.attributes.beneficiary.last_name = newItem.attributes.beneficiary.last_name
-    formData.attributes.beneficiary.account.sort_code = newItem.attributes.beneficiary.account.sort_code
-    formData.attributes.beneficiary.account.account_number = newItem.attributes.beneficiary.account.account_number
+    Object.assign(formData, {
+      amount: newItem.amount,
+      type: newItem.type,
+      status: newItem.status,
+      created: new Date(newItem.created).toISOString().slice(0, 16)
+    })
+
+    // Deep merge for nested objects
+    Object.assign(formData.attributes.debtor, newItem.attributes.debtor)
+    Object.assign(formData.attributes.beneficiary, newItem.attributes.beneficiary)
   }
 }, { immediate: true })
 
-// Form validation
+// Form validation using functional approach
 const isFormValid = computed(() => {
-  return (
-    formData.amount > 0 &&
-    formData.type &&
-    formData.status &&
-    formData.attributes.debtor.first_name.trim() !== '' &&
-    formData.attributes.debtor.last_name.trim() !== '' &&
-    validateSortCode(formData.attributes.debtor.account.sort_code) &&
-    validateAccountNumber(formData.attributes.debtor.account.account_number) &&
-    formData.attributes.beneficiary.first_name.trim() !== '' &&
-    formData.attributes.beneficiary.last_name.trim() !== '' &&
-    validateSortCode(formData.attributes.beneficiary.account.sort_code) &&
+  const validations = [
+    formData.amount > 0,
+    formData.type,
+    formData.status,
+
+    // Debtor validations
+    formData.attributes.debtor.first_name.trim() !== '',
+    formData.attributes.debtor.last_name.trim() !== '',
+    validateSortCode(formData.attributes.debtor.account.sort_code),
+    validateAccountNumber(formData.attributes.debtor.account.account_number),
+
+    // Beneficiary validations
+    formData.attributes.beneficiary.first_name.trim() !== '',
+    formData.attributes.beneficiary.last_name.trim() !== '',
+    validateSortCode(formData.attributes.beneficiary.account.sort_code),
     validateAccountNumber(formData.attributes.beneficiary.account.account_number)
-  )
+  ]
+
+  return validations.every(Boolean)
 })
 
 
@@ -356,18 +355,31 @@ const closeModal = () => {
 }
 
 const resetForm = () => {
-  formData.amount = 0
-  formData.type = 'ADMISSION'
-  formData.status = 'ACCEPTED'
-  formData.created = new Date().toISOString().slice(0, 16)
-  formData.attributes.debtor.first_name = ''
-  formData.attributes.debtor.last_name = ''
-  formData.attributes.debtor.account.sort_code = ''
-  formData.attributes.debtor.account.account_number = ''
-  formData.attributes.beneficiary.first_name = ''
-  formData.attributes.beneficiary.last_name = ''
-  formData.attributes.beneficiary.account.sort_code = ''
-  formData.attributes.beneficiary.account.account_number = ''
+  // Reset top-level properties
+  Object.assign(formData, {
+    amount: 0,
+    type: 'ADMISSION',
+    status: 'ACCEPTED',
+    created: new Date().toISOString().slice(0, 16)
+  })
+
+  Object.assign(formData.attributes.debtor, {
+    first_name: '',
+    last_name: '',
+    account: {
+      sort_code: '',
+      account_number: ''
+    }
+  })
+
+  Object.assign(formData.attributes.beneficiary, {
+    first_name: '',
+    last_name: '',
+    account: {
+      sort_code: '',
+      account_number: ''
+    }
+  })
 }
 
 // Handle form submission
@@ -392,7 +404,7 @@ const handleSubmit = async () => {
         attributes: formData.attributes
       }
       const updatedItem = await itemsStore.updateItem(props.item.guid, updateData)
-      
+
       if (updatedItem) {
         toast.success('Item updated successfully!')
         closeModal()
@@ -420,24 +432,31 @@ const handleSubmit = async () => {
   }
 }
 
-// Formatting methods for sort codes and account numbers
-const formatDebtorSortCode = (event: Event) => {
-  const target = event.target as HTMLInputElement
-  formData.attributes.debtor.account.sort_code = formatSortCode(target.value)
-}
+const debtorSortCode = computed({
+  get: () => formData.attributes.debtor.account.sort_code,
+  set: (value: string) => {
+    formData.attributes.debtor.account.sort_code = formatSortCode(value)
+  }
+})
 
-const formatDebtorAccountNumber = (event: Event) => {
-  const target = event.target as HTMLInputElement
-  formData.attributes.debtor.account.account_number = formatAccountNumber(target.value)
-}
+const debtorAccountNumber = computed({
+  get: () => formData.attributes.debtor.account.account_number,
+  set: (value: string) => {
+    formData.attributes.debtor.account.account_number = formatAccountNumber(value)
+  }
+})
 
-const formatBeneficiarySortCode = (event: Event) => {
-  const target = event.target as HTMLInputElement
-  formData.attributes.beneficiary.account.sort_code = formatSortCode(target.value)
-}
+const beneficiarySortCode = computed({
+  get: () => formData.attributes.beneficiary.account.sort_code,
+  set: (value: string) => {
+    formData.attributes.beneficiary.account.sort_code = formatSortCode(value)
+  }
+})
 
-const formatBeneficiaryAccountNumber = (event: Event) => {
-  const target = event.target as HTMLInputElement
-  formData.attributes.beneficiary.account.account_number = formatAccountNumber(target.value)
-}
+const beneficiaryAccountNumber = computed({
+  get: () => formData.attributes.beneficiary.account.account_number,
+  set: (value: string) => {
+    formData.attributes.beneficiary.account.account_number = formatAccountNumber(value)
+  }
+})
 </script>

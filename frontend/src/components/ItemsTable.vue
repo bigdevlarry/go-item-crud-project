@@ -149,15 +149,12 @@ import ItemSearch from './ItemSearch.vue'
 import ConfirmationModal from './ConfirmationModal.vue'
 import { formatCurrency, formatDate, getStatusBadgeClass, getTypeBadgeClass } from '../utils/formatters'
 import type { Item } from '@/types'
-import type { ItemType, ItemStatus } from '../types/enums'
 
 // Pinia store
 const itemsStore = useItemsStore()
 
-// Toast notifications
 const toast = useToast()
 
-// Local state
 const showCreateModal = ref(false)
 const showEditModal = ref(false)
 const showDeleteModal = ref(false)
@@ -167,7 +164,6 @@ const itemToDelete = ref<string | null>(null)
 // Computed properties from store
 const items = computed(() => itemsStore.items)
 const loading = computed(() => itemsStore.loading)
-const error = computed(() => itemsStore.error)
 const searchQuery = computed({
   get: () => itemsStore.searchQuery,
   set: (value: string) => itemsStore.setSearchQuery(value)
@@ -177,7 +173,6 @@ const searchQuery = computed({
 watch(searchQuery, (newQuery) => {
   itemsStore.fetchItems(newQuery)
 })
-
 
 const openCreateModal = () => {
   itemToEdit.value = null
@@ -196,19 +191,13 @@ const closeModal = () => {
 }
 
 const handleItemCreated = async () => {
-  // Close the modal after successful item creation
   closeModal()
-  
-  // Refresh the items list to ensure UI updates
-  await itemsStore.fetchItems()
+  await itemsStore.fetchItems() // refresh items list
 }
 
 const handleItemUpdated = async () => {
-  // Close the modal after successful item update
   closeModal()
-  
-  // Refresh the items list to ensure UI updates
-  await itemsStore.fetchItems()
+  await itemsStore.fetchItems() // refresh items list
 }
 
 const deleteItem = (guid: string) => {
@@ -224,7 +213,7 @@ const confirmDelete = async () => {
     } else {
       toast.error('Failed to delete item. Please try again.')
     }
-    
+
     cancelDelete()
   }
 }
@@ -233,7 +222,6 @@ const cancelDelete = () => {
   showDeleteModal.value = false
   itemToDelete.value = null
 }
-
 
 onMounted(() => {
   itemsStore.fetchItems()

@@ -17,7 +17,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useItemsStore } from '../stores/items'
-import type { ItemSearchProps } from '../types/components'
 
 interface Props {
   modelValue: string
@@ -37,7 +36,6 @@ const searchValue = computed({
   get: () => props.modelValue,
   set: (value: string) => {
     emit('update:modelValue', value)
-    // Update the store's search query
     itemsStore.setSearchQuery(value)
   }
 })
