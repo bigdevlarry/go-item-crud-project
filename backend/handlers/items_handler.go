@@ -64,7 +64,7 @@ func (h *ItemsHandler) Create(c *gin.Context) {
 	var createDTO dto.ItemCreateDTO
 
 	if err := c.ShouldBindJSON(&createDTO); err != nil {
-		helpers.Error(c, http.StatusBadRequest, err.Error())
+		helpers.ValidationErrorResponse(c, err)
 		return
 	}
 
@@ -99,7 +99,7 @@ func (h *ItemsHandler) Update(c *gin.Context) {
 
 	var updateDTO dto.ItemUpdateDTO
 	if err := c.ShouldBindJSON(&updateDTO); err != nil {
-		helpers.Error(c, http.StatusBadRequest, err.Error())
+		helpers.ValidationErrorResponse(c, err)
 		return
 	}
 
