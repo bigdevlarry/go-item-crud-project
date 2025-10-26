@@ -209,11 +209,6 @@ docker compose logs -f
 docker compose down
 ```
 
-#### Service URLs
-Once the services are running, access the application at:
-- **Frontend**: http://localhost:3000
-- **Backend API**: http://localhost:8080
-
 ## 🧪 Testing Commands
 
 ### Backend Testing
@@ -233,10 +228,16 @@ npm run test:unit
 
 ## 🔧 API Endpoints
 
+Once the services are running, access the application at:
 - **Frontend**: http://localhost:3000
-- **Backend API**: http://localhost:8080
+#### Screenshots
+  - homepage
+  ![homepage UI](backend/screenshots/home.png)
+  - delete confirmation modal
+  ![delete confirmation UI](backend/screenshots/delete_confirmation.png)
 
 ### Items Management
+- **Backend API**: http://localhost:8080/items
 
 | Method | Path | Request Body | Response | Notes |
 |--------|------|--------------|----------|-------|
