@@ -106,7 +106,7 @@ go-test/
 
 #### **Repository Pattern**
 - **Rationale**: Centralized data access with thread-safe operations
-- **Implementation**: `ItemsStore` struct with mutex for concurrent access in `items_repository.go`
+- **Implementation**: `ItemsStore` struct with mutex for concurrent access using in-memory storage in `items_repository.go`
 
 #### **Handler Layer**
 - **Rationale**: Clean separation between HTTP concerns and business logic
