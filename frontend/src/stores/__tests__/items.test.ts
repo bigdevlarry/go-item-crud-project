@@ -55,7 +55,10 @@ describe('Items Store', () => {
       // Mock successful response
       ;(global.fetch as any).mockResolvedValueOnce({
         ok: true,
-        json: async () => mockItems
+        json: async () => mockItems,
+        headers: {
+          get: vi.fn().mockReturnValue(null)
+        }
       })
 
       await store.fetchItems()
@@ -67,10 +70,13 @@ describe('Items Store', () => {
 
     it('fetches items with search query', async () => {
       const mockItems: Item[] = []
-
+      
       ;(global.fetch as any).mockResolvedValueOnce({
         ok: true,
-        json: async () => mockItems
+        json: async () => mockItems,
+        headers: {
+          get: vi.fn().mockReturnValue(null)
+        }
       })
 
       await store.fetchItems('test query')
@@ -118,7 +124,10 @@ describe('Items Store', () => {
       // Mock successful response
       ;(global.fetch as any).mockResolvedValueOnce({
         ok: true,
-        json: async () => createdItem
+        json: async () => createdItem,
+        headers: {
+          get: vi.fn().mockReturnValue(null)
+        }
       })
 
       const result = await store.createItem(newItemData)
@@ -174,7 +183,10 @@ describe('Items Store', () => {
       // Mock successful response
       ;(global.fetch as any).mockResolvedValueOnce({
         ok: true,
-        json: async () => updatedItem
+        json: async () => updatedItem,
+        headers: {
+          get: vi.fn().mockReturnValue(null)
+        }
       })
 
       const result = await store.updateItem('test-guid', updateData)
@@ -217,10 +229,14 @@ describe('Items Store', () => {
       // Add item to store first
       store.items.push(itemToDelete)
 
-      // Mock successful response
+      // Mock successful response (204 No Content)
       ;(global.fetch as any).mockResolvedValueOnce({
         ok: true,
-        json: async () => ({})
+        status: 204,
+        json: async () => ({}),
+        headers: {
+          get: vi.fn().mockReturnValue('0')
+        }
       })
 
       const result = await store.deleteItem('test-guid')
