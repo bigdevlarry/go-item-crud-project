@@ -1,8 +1,8 @@
 package feature
 
 import (
-	"go-test/backend/models/entities"
-	"go-test/backend/models/enums"
+	"go-test/backend/domain/enums"
+	"go-test/backend/domain/models"
 	"go-test/backend/tests"
 	"net/http"
 	"net/http/httptest"
@@ -14,7 +14,7 @@ import (
 func TestItCanDeleteAnItem(t *testing.T) {
 	r, s := tests.SetupReadRouter()
 
-	item := &entities.Item{
+	item := &models.Item{
 		GUID:   "test-guid-123",
 		Amount: 100,
 		Type:   enums.ADMISSION,
@@ -62,7 +62,7 @@ func TestItCanDeleteAnItem(t *testing.T) {
 
 	t.Run("It returns 404 when deleting an already deleted item", func(t *testing.T) {
 		// Create a new item for this test
-		testItem := &entities.Item{
+		testItem := &models.Item{
 			GUID:   "test-guid-delete-twice",
 			Amount: 100,
 			Type:   enums.ADMISSION,

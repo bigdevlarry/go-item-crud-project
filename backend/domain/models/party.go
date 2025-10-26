@@ -1,4 +1,4 @@
-package entities
+package models
 
 type Party struct {
 	FirstName string  `json:"first_name" binding:"required"`

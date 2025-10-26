@@ -2,8 +2,8 @@ package store
 
 import (
 	"errors"
+	"go-test/backend/domain/models"
 	"go-test/backend/helpers"
-	"go-test/backend/models/entities"
 	"strings"
 	"sync"
 )
@@ -11,33 +11,33 @@ import (
 var ErrNotFound = errors.New("item not found")
 
 type ItemsStorage interface {
-	GetAll() ([]entities.Item, error)
-	GetAllFiltered(query string, limit int) ([]entities.Item, error)
-	GetByGUID(guid string) (*entities.Item, error)
+	GetAll() ([]models.Item, error)
+	GetAllFiltered(query string, limit int) ([]models.Item, error)
+	GetByGUID(guid string) (*models.Item, error)
 	Count() (int, error)
-	Create(item *entities.Item) error
-	Update(item *entities.Item) error
+	Create(item *models.Item) error
+	Update(item *models.Item) error
 	Delete(guid string) error
 }
 
 type ItemsStore struct {
-	items map[string]entities.Item
+	items map[string]models.Item
 	mutex sync.RWMutex
 }
 
 // NewStore creates a new, thread-safe in-memory item store
 func NewStore() *ItemsStore {
 	return &ItemsStore{
-		items: make(map[string]entities.Item),
+		items: make(map[string]models.Item),
 	}
 }
 
 // GetAll returns all items
-func (is *ItemsStore) GetAll() ([]entities.Item, error) {
+func (is *ItemsStore) GetAll() ([]models.Item, error) {
 	is.mutex.RLock()
 	defer is.mutex.RUnlock()
 
-	items := make([]entities.Item, 0, len(is.items))
+	items := make([]models.Item, 0, len(is.items))
 	for _, item := range is.items {
 		items = append(items, item)
 	}
@@ -45,14 +45,14 @@ func (is *ItemsStore) GetAll() ([]entities.Item, error) {
 }
 
 // GetAllFiltered returns filtered and limited items
-func (is *ItemsStore) GetAllFiltered(query string, limit int) ([]entities.Item, error) {
+func (is *ItemsStore) GetAllFiltered(query string, limit int) ([]models.Item, error) {
 	is.mutex.RLock()
 	defer is.mutex.RUnlock()
 
 	items := helpers.CopyItems(is.items)
 
 	if query != "" {
-		filtered := make([]entities.Item, 0)
+		filtered := make([]models.Item, 0)
 		queryLower := strings.ToLower(query)
 		for _, item := range items {
 			guidLower := strings.ToLower(item.GUID)
@@ -74,7 +74,7 @@ func (is *ItemsStore) GetAllFiltered(query string, limit int) ([]entities.Item, 
 }
 
 // GetByGUID returns an item by GUID
-func (is *ItemsStore) GetByGUID(guid string) (*entities.Item, error) {
+func (is *ItemsStore) GetByGUID(guid string) (*models.Item, error) {
 	is.mutex.RLock()
 	defer is.mutex.RUnlock()
 
@@ -94,7 +94,7 @@ func (is *ItemsStore) Count() (int, error) {
 }
 
 // Create adds a new item
-func (is *ItemsStore) Create(item *entities.Item) error {
+func (is *ItemsStore) Create(item *models.Item) error {
 	if item == nil {
 		return errors.New("item cannot be nil")
 	}
@@ -110,7 +110,7 @@ func (is *ItemsStore) Create(item *entities.Item) error {
 }
 
 // Update updates an item by a given GUID
-func (is *ItemsStore) Update(item *entities.Item) error {
+func (is *ItemsStore) Update(item *models.Item) error {
 	if item == nil {
 		return errors.New("item cannot be nil")
 	}

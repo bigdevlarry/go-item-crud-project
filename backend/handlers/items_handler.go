@@ -2,8 +2,8 @@ package handlers
 
 import (
 	"errors"
+	"go-test/backend/domain/dto"
 	"go-test/backend/helpers"
-	"go-test/backend/models/dto"
 	"go-test/backend/store"
 	"net/http"
 	"strings"

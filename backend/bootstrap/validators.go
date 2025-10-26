@@ -1,7 +1,7 @@
 package bootstrap
 
 import (
-	"go-test/backend/models/validators"
+	"go-test/backend/domain/validators"
 	"log"
 
 	"github.com/gin-gonic/gin/binding"

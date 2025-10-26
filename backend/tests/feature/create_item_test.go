@@ -1,8 +1,8 @@
 package feature
 
 import (
-	"go-test/backend/models/entities"
-	"go-test/backend/models/enums"
+	"go-test/backend/domain/enums"
+	"go-test/backend/domain/models"
 	"go-test/backend/tests"
 	"net/http"
 	"net/http/httptest"
@@ -35,9 +35,9 @@ func TestItCanCreateAnItem(t *testing.T) {
 		assert.Contains(t, w.Body.String(), `"last_name":"Doe"`)
 		assert.Contains(t, w.Body.String(), `"first_name":"Jane"`)
 		assert.Contains(t, w.Body.String(), `"last_name":"Smith"`)
-		assert.Contains(t, w.Body.String(), `"sort_code":"123456"`)
+		assert.Contains(t, w.Body.String(), `"sort_code":"12-34-56"`)
 		assert.Contains(t, w.Body.String(), `"account_number":"12345678"`)
-		assert.Contains(t, w.Body.String(), `"sort_code":"876543"`)
+		assert.Contains(t, w.Body.String(), `"sort_code":"87-65-43"`)
 		assert.Contains(t, w.Body.String(), `"account_number":"87654321"`)
 		assert.Contains(t, w.Body.String(), `"guid"`)
 		assert.Contains(t, w.Body.String(), `"created"`)
@@ -54,7 +54,7 @@ func TestItCanCreateAnItem(t *testing.T) {
 					"first_name": "John",
 					"last_name": "Doe",
 					"account": {
-						"sort_code": "123456",
+						"sort_code": "12-34-56",
 						"account_number": "12345678"
 					}
 				},
@@ -62,7 +62,7 @@ func TestItCanCreateAnItem(t *testing.T) {
 					"first_name": "Jane",
 					"last_name": "Smith",
 					"account": {
-						"sort_code": "876543",
+						"sort_code": "87-65-43",
 						"account_number": "87654321"
 					}
 				}
@@ -92,7 +92,7 @@ func TestItCanCreateAnItem(t *testing.T) {
 					"first_name": "John",
 					"last_name": "Doe",
 					"account": {
-						"sort_code": "123456",
+						"sort_code": "12-34-56",
 						"account_number": "12345678"
 					}
 				},
@@ -100,7 +100,7 @@ func TestItCanCreateAnItem(t *testing.T) {
 					"first_name": "Jane",
 					"last_name": "Smith",
 					"account": {
-						"sort_code": "876543",
+						"sort_code": "87-65-43",
 						"account_number": "87654321"
 					}
 				}
@@ -144,7 +144,7 @@ func TestItCanCreateAnItem(t *testing.T) {
 
 	t.Run("It returns error when creating item with empty GUID", func(t *testing.T) {
 		// Arrange
-		item := &entities.Item{
+		item := &models.Item{
 			GUID:   "", // Empty GUID
 			Amount: 100,
 			Type:   enums.ADMISSION,
@@ -170,10 +170,10 @@ func TestItCanCreateAnItem(t *testing.T) {
 
 		// Assert
 		assert.Equal(t, http.StatusBadRequest, w.Code)
-		assert.Contains(t, w.Body.String(), "Amount")
-		assert.Contains(t, w.Body.String(), "Type")
-		assert.Contains(t, w.Body.String(), "Status")
-		assert.Contains(t, w.Body.String(), "Attributes")
+		assert.Contains(t, w.Body.String(), "amount")
+		assert.Contains(t, w.Body.String(), "type")
+		assert.Contains(t, w.Body.String(), "status")
+		assert.Contains(t, w.Body.String(), "firstname")
 	})
 
 	t.Run("It returns 400 error when amount is not greater than 0", func(t *testing.T) {
@@ -187,7 +187,7 @@ func TestItCanCreateAnItem(t *testing.T) {
 					"first_name": "John",
 					"last_name": "Doe",
 					"account": {
-						"sort_code": "123456",
+						"sort_code": "12-34-56",
 						"account_number": "12345678"
 					}
 				},
@@ -195,7 +195,7 @@ func TestItCanCreateAnItem(t *testing.T) {
 					"first_name": "Jane",
 					"last_name": "Smith",
 					"account": {
-						"sort_code": "876543",
+						"sort_code": "87-65-43",
 						"account_number": "87654321"
 					}
 				}
@@ -210,7 +210,7 @@ func TestItCanCreateAnItem(t *testing.T) {
 
 		// Assert
 		assert.Equal(t, http.StatusBadRequest, w.Code)
-		assert.Contains(t, w.Body.String(), "Amount")
+		assert.Contains(t, w.Body.String(), "amount")
 		assert.Contains(t, w.Body.String(), "required")
 	})
 
@@ -225,7 +225,7 @@ func TestItCanCreateAnItem(t *testing.T) {
 					"first_name": "John",
 					"last_name": "Doe",
 					"account": {
-						"sort_code": "123456",
+						"sort_code": "12-34-56",
 						"account_number": "12345678"
 					}
 				},
@@ -233,7 +233,7 @@ func TestItCanCreateAnItem(t *testing.T) {
 					"first_name": "Jane",
 					"last_name": "Smith",
 					"account": {
-						"sort_code": "876543",
+						"sort_code": "87-65-43",
 						"account_number": "87654321"
 					}
 				}
@@ -248,8 +248,8 @@ func TestItCanCreateAnItem(t *testing.T) {
 
 		// Assert
 		assert.Equal(t, http.StatusBadRequest, w.Code)
-		assert.Contains(t, w.Body.String(), "Amount")
-		assert.Contains(t, w.Body.String(), "gt")
+		assert.Contains(t, w.Body.String(), "amount")
+		assert.Contains(t, w.Body.String(), "greater than 0")
 	})
 
 	t.Run("It returns 400 error when type is invalid", func(t *testing.T) {
@@ -263,7 +263,7 @@ func TestItCanCreateAnItem(t *testing.T) {
 					"first_name": "John",
 					"last_name": "Doe",
 					"account": {
-						"sort_code": "123456",
+						"sort_code": "12-34-56",
 						"account_number": "12345678"
 					}
 				},
@@ -271,7 +271,7 @@ func TestItCanCreateAnItem(t *testing.T) {
 					"first_name": "Jane",
 					"last_name": "Smith",
 					"account": {
-						"sort_code": "876543",
+						"sort_code": "87-65-43",
 						"account_number": "87654321"
 					}
 				}
@@ -286,7 +286,7 @@ func TestItCanCreateAnItem(t *testing.T) {
 
 		// Assert
 		assert.Equal(t, http.StatusBadRequest, w.Code)
-		assert.Contains(t, w.Body.String(), "Type")
+		assert.Contains(t, w.Body.String(), "type")
 	})
 
 	t.Run("It returns 400 error when status is invalid", func(t *testing.T) {
@@ -300,7 +300,7 @@ func TestItCanCreateAnItem(t *testing.T) {
 					"first_name": "John",
 					"last_name": "Doe",
 					"account": {
-						"sort_code": "123456",
+						"sort_code": "12-34-56",
 						"account_number": "12345678"
 					}
 				},
@@ -308,7 +308,7 @@ func TestItCanCreateAnItem(t *testing.T) {
 					"first_name": "Jane",
 					"last_name": "Smith",
 					"account": {
-						"sort_code": "876543",
+						"sort_code": "87-65-43",
 						"account_number": "87654321"
 					}
 				}
@@ -323,7 +323,7 @@ func TestItCanCreateAnItem(t *testing.T) {
 
 		// Assert
 		assert.Equal(t, http.StatusBadRequest, w.Code)
-		assert.Contains(t, w.Body.String(), "Status")
+		assert.Contains(t, w.Body.String(), "status")
 	})
 
 	t.Run("It returns 400 error when attributes are missing", func(t *testing.T) {
@@ -342,7 +342,7 @@ func TestItCanCreateAnItem(t *testing.T) {
 
 		// Assert
 		assert.Equal(t, http.StatusBadRequest, w.Code)
-		assert.Contains(t, w.Body.String(), "Attributes")
+		assert.Contains(t, w.Body.String(), "firstname")
 	})
 
 	t.Run("It returns 400 error when debtor information is missing", func(t *testing.T) {
@@ -355,7 +355,7 @@ func TestItCanCreateAnItem(t *testing.T) {
 					"first_name": "Jane",
 					"last_name": "Smith",
 					"account": {
-						"sort_code": "876543",
+						"sort_code": "87-65-43",
 						"account_number": "87654321"
 					}
 				}
@@ -368,7 +368,7 @@ func TestItCanCreateAnItem(t *testing.T) {
 		r.ServeHTTP(w, req)
 
 		assert.Equal(t, http.StatusBadRequest, w.Code)
-		assert.Contains(t, w.Body.String(), "Debtor")
+		assert.Contains(t, w.Body.String(), "firstname")
 	})
 
 	t.Run("It returns 400 error when beneficiary information is missing", func(t *testing.T) {
@@ -381,7 +381,7 @@ func TestItCanCreateAnItem(t *testing.T) {
 					"first_name": "John",
 					"last_name": "Doe",
 					"account": {
-						"sort_code": "123456",
+						"sort_code": "12-34-56",
 						"account_number": "12345678"
 					}
 				}
@@ -394,7 +394,7 @@ func TestItCanCreateAnItem(t *testing.T) {
 		r.ServeHTTP(w, req)
 
 		assert.Equal(t, http.StatusBadRequest, w.Code)
-		assert.Contains(t, w.Body.String(), "Beneficiary")
+		assert.Contains(t, w.Body.String(), "firstname")
 	})
 
 	t.Run("It returns 400 error when account information is missing", func(t *testing.T) {
@@ -420,7 +420,7 @@ func TestItCanCreateAnItem(t *testing.T) {
 		r.ServeHTTP(w, req)
 
 		assert.Equal(t, http.StatusBadRequest, w.Code)
-		assert.Contains(t, w.Body.String(), "Account")
+		assert.Contains(t, w.Body.String(), "sortcode")
 	})
 
 	t.Run("It returns 400 error when JSON is malformed", func(t *testing.T) {
@@ -454,7 +454,7 @@ func createValidCreatePayload() string {
 				"first_name": "John",
 				"last_name": "Doe",
 				"account": {
-					"sort_code": "123456",
+					"sort_code": "12-34-56",
 					"account_number": "12345678"
 				}
 			},
@@ -462,7 +462,7 @@ func createValidCreatePayload() string {
 				"first_name": "Jane",
 				"last_name": "Smith",
 				"account": {
-					"sort_code": "876543",
+					"sort_code": "87-65-43",
 					"account_number": "87654321"
 				}
 			}

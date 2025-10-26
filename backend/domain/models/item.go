@@ -1,7 +1,7 @@
-package entities
+package models
 
 import (
-	"go-test/backend/models/enums"
+	"go-test/backend/domain/enums"
 	"time"
 )
 

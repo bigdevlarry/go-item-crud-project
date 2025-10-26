@@ -1,8 +1,8 @@
 package feature
 
 import (
-	"go-test/backend/models/entities"
-	"go-test/backend/models/enums"
+	"go-test/backend/domain/enums"
+	"go-test/backend/domain/models"
 	"go-test/backend/tests"
 	"net/http"
 	"net/http/httptest"
@@ -14,7 +14,7 @@ import (
 func TestItCanListItemByGuid(t *testing.T) {
 	r, s := tests.SetupReadRouter()
 
-	item := &entities.Item{
+	item := &models.Item{
 		GUID:   "test-guid-123",
 		Amount: 100,
 		Type:   enums.ADMISSION,

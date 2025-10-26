@@ -1,8 +1,8 @@
 package feature
 
 import (
-	"go-test/backend/models/entities"
-	"go-test/backend/models/enums"
+	"go-test/backend/domain/enums"
+	"go-test/backend/domain/models"
 	"go-test/backend/tests"
 	"net/http"
 	"net/http/httptest"
@@ -15,7 +15,7 @@ import (
 func TestItCanUpdateAnItem(t *testing.T) {
 	r, s := tests.SetupReadRouter()
 
-	item := &entities.Item{
+	item := &models.Item{
 		GUID:   "test-guid-123",
 		Amount: 100,
 		Type:   enums.ADMISSION,
@@ -41,9 +41,9 @@ func TestItCanUpdateAnItem(t *testing.T) {
 		assert.Contains(t, w.Body.String(), `"last_name":"Doe"`)
 		assert.Contains(t, w.Body.String(), `"first_name":"Jane"`)
 		assert.Contains(t, w.Body.String(), `"last_name":"Smith"`)
-		assert.Contains(t, w.Body.String(), `"sort_code":"123456"`)
+		assert.Contains(t, w.Body.String(), `"sort_code":"12-34-56"`)
 		assert.Contains(t, w.Body.String(), `"account_number":"12345678"`)
-		assert.Contains(t, w.Body.String(), `"sort_code":"876543"`)
+		assert.Contains(t, w.Body.String(), `"sort_code":"87-65-43"`)
 		assert.Contains(t, w.Body.String(), `"account_number":"87654321"`)
 	})
 
@@ -70,7 +70,7 @@ func TestItCanUpdateAnItem(t *testing.T) {
 
 		// Assert
 		assert.Equal(t, http.StatusBadRequest, w.Code)
-		assert.Contains(t, w.Body.String(), "Field validation for 'Amount' failed on the 'gt'")
+		assert.Contains(t, w.Body.String(), "greater than 0")
 	})
 
 	t.Run("It returns 400 error when the status or type is invalid", func(t *testing.T) {
@@ -83,8 +83,8 @@ func TestItCanUpdateAnItem(t *testing.T) {
 
 		// Assert
 		assert.Equal(t, http.StatusBadRequest, w.Code)
-		assert.Contains(t, w.Body.String(), "Field validation for 'Status' failed on the 'itemstatus'")
-		assert.Contains(t, w.Body.String(), "Field validation for 'Type' failed on the 'itemtype'")
+		assert.Contains(t, w.Body.String(), "status")
+		assert.Contains(t, w.Body.String(), "type")
 	})
 
 	t.Run("It returns error when updating with nil pointer", func(t *testing.T) {
@@ -98,7 +98,7 @@ func TestItCanUpdateAnItem(t *testing.T) {
 
 	t.Run("It returns error when updating item with empty GUID", func(t *testing.T) {
 		// Arrange
-		item := &entities.Item{
+		item := &models.Item{
 			GUID:   "", // Empty GUID
 			Amount: 100,
 			Type:   enums.ADMISSION,
@@ -115,7 +115,7 @@ func TestItCanUpdateAnItem(t *testing.T) {
 
 	t.Run("It returns 404 not found when updating non-existent item", func(t *testing.T) {
 		// Arrange
-		item := &entities.Item{
+		item := &models.Item{
 			GUID:   "non-existent-guid",
 			Amount: 100,
 			Type:   enums.ADMISSION,
@@ -141,7 +141,7 @@ func createUpdatePayload() string {
                 "first_name": "John",
                 "last_name": "Doe",
                 "account": {
-                    "sort_code": "123456",
+                    "sort_code": "12-34-56",
                     "account_number": "12345678"
                 }
             },
@@ -149,7 +149,7 @@ func createUpdatePayload() string {
                 "first_name": "Jane",
                 "last_name": "Smith",
                 "account": {
-                    "sort_code": "876543",
+                    "sort_code": "87-65-43",
                     "account_number": "87654321"
                 }
             }

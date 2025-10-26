@@ -1,8 +1,8 @@
 package tests
 
 import (
+	"go-test/backend/domain/validators"
 	"go-test/backend/handlers"
-	"go-test/backend/models/validators"
 	"go-test/backend/store"
 
 	"github.com/gin-gonic/gin"
@@ -14,10 +14,11 @@ func SetupReadRouter() (*gin.Engine, store.ItemsStorage) {
 	gin.SetMode(gin.TestMode)
 	r := gin.Default()
 
-	// Register custom validators (same as main.go)
+	// Register custom validators
 	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
 		v.RegisterValidation("itemtype", validators.ValidateItemType)
 		v.RegisterValidation("itemstatus", validators.ValidateItemStatus)
+		v.RegisterValidation("sortcode", validators.ValidateSortCode)
 	}
 
 	s := store.NewStore()

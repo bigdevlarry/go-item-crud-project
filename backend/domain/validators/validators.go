@@ -1,7 +1,7 @@
 package validators
 
 import (
-	"go-test/backend/models/enums"
+	"go-test/backend/domain/enums"
 	"regexp"
 	"strings"
 
