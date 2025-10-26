@@ -3,14 +3,14 @@ package tests
 import (
 	"go-test/backend/domain/validators"
 	"go-test/backend/handlers"
-	"go-test/backend/store"
+	"go-test/backend/repository"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
 	"github.com/go-playground/validator/v10"
 )
 
-func SetupReadRouter() (*gin.Engine, store.ItemsStorage) {
+func SetupReadRouter() (*gin.Engine, repository.ItemsStorage) {
 	gin.SetMode(gin.TestMode)
 	r := gin.Default()
 
@@ -21,7 +21,7 @@ func SetupReadRouter() (*gin.Engine, store.ItemsStorage) {
 		v.RegisterValidation("sortcode", validators.ValidateSortCode)
 	}
 
-	s := store.NewStore()
+	s := repository.NewStore()
 	handler := handlers.NewItemsHandler(s)
 	r.GET("/items", handler.GetAll)
 	r.GET("/items/:guid", handler.GetByGUID)

@@ -3,7 +3,7 @@ package main
 import (
 	"go-test/backend/bootstrap"
 	"go-test/backend/handlers"
-	"go-test/backend/store"
+	"go-test/backend/repository"
 	"time"
 
 	"github.com/gin-contrib/cors"
@@ -27,7 +27,7 @@ func main() {
 	// Register custom validators
 	bootstrap.RegisterCustomValidators()
 
-	s := store.NewStore()
+	s := repository.NewStore()
 	h := handlers.NewItemsHandler(s)
 
 	r.GET("/items", h.GetAll)

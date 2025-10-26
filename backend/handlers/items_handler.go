@@ -4,7 +4,7 @@ import (
 	"errors"
 	"go-test/backend/domain/dto"
 	"go-test/backend/helpers"
-	"go-test/backend/store"
+	"go-test/backend/repository"
 	"net/http"
 	"strings"
 
@@ -12,10 +12,10 @@ import (
 )
 
 type ItemsHandler struct {
-	storage store.ItemsStorage
+	storage repository.ItemsStorage
 }
 
-func NewItemsHandler(storage store.ItemsStorage) *ItemsHandler {
+func NewItemsHandler(storage repository.ItemsStorage) *ItemsHandler {
 	return &ItemsHandler{
 		storage: storage,
 	}
@@ -48,7 +48,7 @@ func (h *ItemsHandler) GetByGUID(c *gin.Context) {
 	}
 
 	item, err := h.storage.GetByGUID(guid)
-	if errors.Is(err, store.ErrNotFound) {
+	if errors.Is(err, repository.ErrNotFound) {
 		helpers.Error(c, http.StatusNotFound, "Item not found")
 		return
 	} else if err != nil {
@@ -89,7 +89,7 @@ func (h *ItemsHandler) Update(c *gin.Context) {
 	guid := c.Param("guid")
 
 	existingItem, err := h.storage.GetByGUID(guid)
-	if errors.Is(err, store.ErrNotFound) {
+	if errors.Is(err, repository.ErrNotFound) {
 		helpers.Error(c, http.StatusNotFound, "Item not found")
 		return
 	} else if err != nil {
@@ -124,7 +124,7 @@ func (h *ItemsHandler) Delete(c *gin.Context) {
 	}
 
 	err := h.storage.Delete(guid)
-	if errors.Is(err, store.ErrNotFound) {
+	if errors.Is(err, repository.ErrNotFound) {
 		helpers.Error(c, http.StatusNotFound, "Item not found")
 		return
 	} else if err != nil {
