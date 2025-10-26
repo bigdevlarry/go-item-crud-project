@@ -1,9 +1,9 @@
-package tests
+package feature
 
 import (
 	"go-test/backend/models/entities"
 	"go-test/backend/models/enums"
-	"go-test/backend/tests/helper"
+	"go-test/backend/tests"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -13,7 +13,7 @@ import (
 )
 
 func TestItCanUpdateAnItem(t *testing.T) {
-	r, s := helper.SetupReadRouter()
+	r, s := tests.SetupReadRouter()
 
 	item := &entities.Item{
 		GUID:   "test-guid-123",
@@ -113,7 +113,7 @@ func TestItCanUpdateAnItem(t *testing.T) {
 		assert.Contains(t, err.Error(), "item GUID cannot be empty")
 	})
 
-	t.Run("It returns ErrNotFound when updating non-existent item", func(t *testing.T) {
+	t.Run("It returns 404 not found when updating non-existent item", func(t *testing.T) {
 		// Arrange
 		item := &entities.Item{
 			GUID:   "non-existent-guid",

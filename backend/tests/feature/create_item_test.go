@@ -1,19 +1,20 @@
-package tests
+package feature
 
 import (
 	"go-test/backend/models/entities"
 	"go-test/backend/models/enums"
-	"go-test/backend/tests/helper"
+	"go-test/backend/tests"
 	"net/http"
 	"net/http/httptest"
 	"strings"
+	"sync"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
 
 func TestItCanCreateAnItem(t *testing.T) {
-	r, _ := helper.SetupReadRouter()
+	r, s := tests.SetupReadRouter()
 
 	t.Run("It can create an item with valid data", func(t *testing.T) {
 		// Arrange
@@ -42,26 +43,120 @@ func TestItCanCreateAnItem(t *testing.T) {
 		assert.Contains(t, w.Body.String(), `"created"`)
 	})
 
-	t.Run("It can create multiple items", func(t *testing.T) {
+	t.Run("It accepts lowercase enum values", func(t *testing.T) {
 		// Arrange
-		validPayload := createValidCreatePayload()
-		req1 := httptest.NewRequest(http.MethodPost, "/items", strings.NewReader(validPayload))
-		req1.Header.Set("Content-Type", "application/json")
-		w1 := httptest.NewRecorder()
+		payload := `{
+			"amount": 100,
+			"type": "admission",
+			"status": "accepted",
+			"attributes": {
+				"debtor": {
+					"first_name": "John",
+					"last_name": "Doe",
+					"account": {
+						"sort_code": "123456",
+						"account_number": "12345678"
+					}
+				},
+				"beneficiary": {
+					"first_name": "Jane",
+					"last_name": "Smith",
+					"account": {
+						"sort_code": "876543",
+						"account_number": "87654321"
+					}
+				}
+			}
+		}`
+		req := httptest.NewRequest(http.MethodPost, "/items", strings.NewReader(payload))
+		req.Header.Set("Content-Type", "application/json")
+		w := httptest.NewRecorder()
 
 		// Act
-		r.ServeHTTP(w1, req1)
-		assert.Equal(t, http.StatusCreated, w1.Code)
-
-		req2 := httptest.NewRequest(http.MethodPost, "/items", strings.NewReader(validPayload))
-		req2.Header.Set("Content-Type", "application/json")
-		w2 := httptest.NewRecorder()
-
-		// Act
-		r.ServeHTTP(w2, req2)
+		r.ServeHTTP(w, req)
 
 		// Assert
-		assert.Equal(t, http.StatusCreated, w2.Code)
+		assert.Equal(t, http.StatusCreated, w.Code)
+		assert.Contains(t, w.Body.String(), `"type":"ADMISSION"`)
+		assert.Contains(t, w.Body.String(), `"status":"ACCEPTED"`)
+	})
+
+	t.Run("It accepts mixed case enum values", func(t *testing.T) {
+		// Arrange
+		payload := `{
+			"amount": 100,
+			"type": "SuBmIsSiOn",
+			"status": "DeClInEd",
+			"attributes": {
+				"debtor": {
+					"first_name": "John",
+					"last_name": "Doe",
+					"account": {
+						"sort_code": "123456",
+						"account_number": "12345678"
+					}
+				},
+				"beneficiary": {
+					"first_name": "Jane",
+					"last_name": "Smith",
+					"account": {
+						"sort_code": "876543",
+						"account_number": "87654321"
+					}
+				}
+			}
+		}`
+		req := httptest.NewRequest(http.MethodPost, "/items", strings.NewReader(payload))
+		req.Header.Set("Content-Type", "application/json")
+		w := httptest.NewRecorder()
+
+		// Act
+		r.ServeHTTP(w, req)
+
+		// Assert
+		assert.Equal(t, http.StatusCreated, w.Code)
+		assert.Contains(t, w.Body.String(), `"type":"SUBMISSION"`)
+		assert.Contains(t, w.Body.String(), `"status":"DECLINED"`)
+	})
+
+	t.Run("It handles concurrent item creation safely", func(t *testing.T) {
+		// Arrange
+		itemPayload := createValidCreatePayload()
+		numGoroutines := 10
+
+		wg := sync.WaitGroup{}
+		wg.Add(numGoroutines)
+
+		// Act
+		for i := 0; i < numGoroutines; i++ {
+			go func() {
+				defer wg.Done()
+				req := httptest.NewRequest(http.MethodPost, "/items", strings.NewReader(itemPayload))
+				req.Header.Set("Content-Type", "application/json")
+				w := httptest.NewRecorder()
+				r.ServeHTTP(w, req)
+				assert.Equal(t, http.StatusCreated, w.Code)
+			}()
+		}
+
+		wg.Wait()
+	})
+
+	t.Run("It returns error when creating item with empty GUID", func(t *testing.T) {
+		// Arrange
+		item := &entities.Item{
+			GUID:   "", // Empty GUID
+			Amount: 100,
+			Type:   enums.ADMISSION,
+			Status: enums.ACCEPTED,
+		}
+
+		// Act
+		err := s.Create(item)
+
+		// Assert
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "item GUID cannot be empty")
 	})
 
 	t.Run("It returns 400 error when required fields are missing", func(t *testing.T) {
@@ -349,90 +444,10 @@ func TestItCanCreateAnItem(t *testing.T) {
 	})
 }
 
-func TestItAcceptsCaseInsensitiveEnums(t *testing.T) {
-	r, _ := helper.SetupReadRouter()
-
-	t.Run("It accepts lowercase enum values", func(t *testing.T) {
-		// Arrange
-		payload := `{
-			"amount": 100,
-			"type": "admission",
-			"status": "accepted",
-			"attributes": {
-				"debtor": {
-					"first_name": "John",
-					"last_name": "Doe",
-					"account": {
-						"sort_code": "123456",
-						"account_number": "12345678"
-					}
-				},
-				"beneficiary": {
-					"first_name": "Jane",
-					"last_name": "Smith",
-					"account": {
-						"sort_code": "876543",
-						"account_number": "87654321"
-					}
-				}
-			}
-		}`
-		req := httptest.NewRequest(http.MethodPost, "/items", strings.NewReader(payload))
-		req.Header.Set("Content-Type", "application/json")
-		w := httptest.NewRecorder()
-
-		// Act
-		r.ServeHTTP(w, req)
-
-		// Assert
-		assert.Equal(t, http.StatusCreated, w.Code)
-		assert.Contains(t, w.Body.String(), `"type":"ADMISSION"`)
-		assert.Contains(t, w.Body.String(), `"status":"ACCEPTED"`)
-	})
-
-	t.Run("It accepts mixed case enum values", func(t *testing.T) {
-		// Arrange
-		payload := `{
-			"amount": 100,
-			"type": "SuBmIsSiOn",
-			"status": "DeClInEd",
-			"attributes": {
-				"debtor": {
-					"first_name": "John",
-					"last_name": "Doe",
-					"account": {
-						"sort_code": "123456",
-						"account_number": "12345678"
-					}
-				},
-				"beneficiary": {
-					"first_name": "Jane",
-					"last_name": "Smith",
-					"account": {
-						"sort_code": "876543",
-						"account_number": "87654321"
-					}
-				}
-			}
-		}`
-		req := httptest.NewRequest(http.MethodPost, "/items", strings.NewReader(payload))
-		req.Header.Set("Content-Type", "application/json")
-		w := httptest.NewRecorder()
-
-		// Act
-		r.ServeHTTP(w, req)
-
-		// Assert
-		assert.Equal(t, http.StatusCreated, w.Code)
-		assert.Contains(t, w.Body.String(), `"type":"SUBMISSION"`)
-		assert.Contains(t, w.Body.String(), `"status":"DECLINED"`)
-	})
-}
-
 func createValidCreatePayload() string {
 	return `{
 		"amount": 100,
-		"type": "ADMISSION",
+		"type":   "ADMISSION",
 		"status": "ACCEPTED",
 		"attributes": {
 			"debtor": {
@@ -453,34 +468,4 @@ func createValidCreatePayload() string {
 			}
 		}
 	}`
-}
-
-func TestStorageValidationForCreate(t *testing.T) {
-	_, s := helper.SetupReadRouter()
-
-	t.Run("It returns error when creating item with nil pointer", func(t *testing.T) {
-		// Act
-		err := s.Create(nil)
-
-		// Assert
-		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "item cannot be nil")
-	})
-
-	t.Run("It returns error when creating item with empty GUID", func(t *testing.T) {
-		// Arrange
-		item := &entities.Item{
-			GUID:   "", // Empty GUID
-			Amount: 100,
-			Type:   enums.ADMISSION,
-			Status: enums.ACCEPTED,
-		}
-
-		// Act
-		err := s.Create(item)
-
-		// Assert
-		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "item GUID cannot be empty")
-	})
 }

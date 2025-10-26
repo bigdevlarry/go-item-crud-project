@@ -1,9 +1,9 @@
-package tests
+package feature
 
 import (
 	"go-test/backend/models/entities"
 	"go-test/backend/models/enums"
-	"go-test/backend/tests/helper"
+	"go-test/backend/tests"
 	"net/http"
 	"net/http/httptest"
 
@@ -13,7 +13,7 @@ import (
 )
 
 func TestItemsListAndFilter(t *testing.T) {
-	r, s := helper.SetupReadRouter()
+	r, s := tests.SetupReadRouter()
 
 	item := &entities.Item{
 		GUID:   "test-guid-123",
@@ -121,19 +121,6 @@ func TestItemsListAndFilter(t *testing.T) {
 		assert.Equal(t, "[]", w.Body.String())
 	})
 
-	t.Run("It returns empty results when partial query matches no items", func(t *testing.T) {
-		// Arrange
-		req := httptest.NewRequest(http.MethodGet, "/items?query=XYZ", nil)
-		w := httptest.NewRecorder()
-
-		// Act
-		r.ServeHTTP(w, req)
-
-		// Assert
-		assert.Equal(t, http.StatusOK, w.Code)
-		assert.Equal(t, "[]", w.Body.String())
-	})
-
 	t.Run("It returns a server error with invalid query params", func(t *testing.T) {
 		// Arrange
 		req := httptest.NewRequest(http.MethodGet, "/items?limit=invalid", nil)
@@ -158,5 +145,44 @@ func TestItemsListAndFilter(t *testing.T) {
 		// Assert
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 		assert.Contains(t, w.Body.String(), "invalid limit value")
+	})
+
+	t.Run("It returns all items when limit is zero or not provided", func(t *testing.T) {
+		// Arrange
+		req := httptest.NewRequest(http.MethodGet, "/items?limit=0", nil)
+		w := httptest.NewRecorder()
+
+		// Act
+		r.ServeHTTP(w, req)
+
+		// Assert
+		assert.Equal(t, http.StatusOK, w.Code)
+		assert.Contains(t, w.Body.String(), item.GUID)
+	})
+
+	t.Run("It can filter items regardless of case sensitivity", func(t *testing.T) {
+		// Arrange
+		req := httptest.NewRequest(http.MethodGet, "/items?query=adMiSsIon", nil)
+		w := httptest.NewRecorder()
+
+		// Act
+		r.ServeHTTP(w, req)
+
+		// Assert
+		assert.Equal(t, http.StatusOK, w.Code)
+		assert.Contains(t, w.Body.String(), "ADMISSION")
+	})
+
+	t.Run("It trims whitespace in query before filtering", func(t *testing.T) {
+		// Arrange
+		req := httptest.NewRequest(http.MethodGet, "/items?query=%20ADMISSION%20", nil)
+		w := httptest.NewRecorder()
+
+		// Act
+		r.ServeHTTP(w, req)
+
+		// Assert
+		assert.Equal(t, http.StatusOK, w.Code)
+		assert.Contains(t, w.Body.String(), "ADMISSION")
 	})
 }

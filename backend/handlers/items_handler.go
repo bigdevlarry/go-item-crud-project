@@ -6,6 +6,7 @@ import (
 	"go-test/backend/models/dto"
 	"go-test/backend/store"
 	"net/http"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 )
@@ -21,7 +22,7 @@ func NewItemsHandler(storage store.ItemsStorage) *ItemsHandler {
 }
 
 func (h *ItemsHandler) GetAll(c *gin.Context) {
-	query := c.Query("query")
+	query := strings.TrimSpace(c.Query("query"))
 
 	limit, err := helpers.ParseLimit(c.Query("limit"), 10)
 	if err != nil {
@@ -40,6 +41,11 @@ func (h *ItemsHandler) GetAll(c *gin.Context) {
 
 func (h *ItemsHandler) GetByGUID(c *gin.Context) {
 	guid := c.Param("guid")
+
+	if strings.TrimSpace(guid) == "" {
+		helpers.Error(c, http.StatusUnprocessableEntity, "GUID is required")
+		return
+	}
 
 	item, err := h.storage.GetByGUID(guid)
 	if errors.Is(err, store.ErrNotFound) {
@@ -111,6 +117,11 @@ func (h *ItemsHandler) Update(c *gin.Context) {
 // Delete deletes an item
 func (h *ItemsHandler) Delete(c *gin.Context) {
 	guid := c.Param("guid")
+
+	if strings.TrimSpace(guid) == "" {
+		helpers.Error(c, http.StatusUnprocessableEntity, "GUID is required")
+		return
+	}
 
 	err := h.storage.Delete(guid)
 	if errors.Is(err, store.ErrNotFound) {

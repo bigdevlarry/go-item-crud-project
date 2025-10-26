@@ -1,4 +1,4 @@
-package helper
+package tests
 
 import (
 	"go-test/backend/handlers"
