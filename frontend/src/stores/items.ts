@@ -17,6 +17,12 @@ async function request<T>(endpoint: string, options?: RequestInit): Promise<T> {
     }
     throw new Error(msg)
   }
+  
+  // Handle empty responses like Delete
+  if (response.status === 204 || response.headers.get('content-length') === '0') {
+    return {} as T
+  }
+  
   return await response.json() as Promise<T>
 }
 
