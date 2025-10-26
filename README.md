@@ -18,10 +18,10 @@ This project implements a CRUD API for managing items with debtor and beneficiar
 
 **Technology Experience**:
 - **Vue.js**: Experienced with Vue 3 Composition API, Pinia, TypeScript, and modern frontend development
-- **Go**: Relatively new to Go, but bringing experience from other ecosystems
-  - Applying patterns from Laravel/PHP (validation, DDD, repository pattern) to Go
-  - Learning Go idioms while leveraging established architectural principles
-  - Exploring Gin framework, Go's type system, and idiomatic patterns
+- **Go**: Experienced full-stack developer applying Go idioms and the Gin framework to build robust, tested, Dockerized applications
+    - Leveraging Laravel/PHP experience (validation, DDD, repository pattern) in Go implementations
+    - Utilizing Go concurrency primitives (`sync.RWMutex`) for thread-safe operations
+    - Building RESTful APIs with Gin framework, custom validation, and comprehensive error handling
 
 ## 🏗️ Architecture Overview
 
