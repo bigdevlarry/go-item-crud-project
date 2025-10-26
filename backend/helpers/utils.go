@@ -5,6 +5,7 @@ import (
 	"go-test/backend/models/dto"
 	"go-test/backend/models/entities"
 	"go-test/backend/models/enums"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -68,5 +69,11 @@ func CopyItems(m map[string]entities.Item) []entities.Item {
 	for _, item := range m {
 		items = append(items, item)
 	}
+
+	// Sort by Index for consistency on the FE
+	sort.Slice(items, func(i, j int) bool {
+		return items[i].Index < items[j].Index
+	})
+
 	return items
 }

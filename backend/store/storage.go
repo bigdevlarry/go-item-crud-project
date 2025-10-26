@@ -55,7 +55,6 @@ func (is *ItemsStore) GetAllFiltered(query string, limit int) ([]entities.Item, 
 		filtered := make([]entities.Item, 0)
 		queryLower := strings.ToLower(query)
 		for _, item := range items {
-			// Pre-compute lowercase values to avoid repeated allocations
 			guidLower := strings.ToLower(item.GUID)
 			typeLower := strings.ToLower(string(item.Type))
 			statusLower := strings.ToLower(string(item.Status))
