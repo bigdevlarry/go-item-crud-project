@@ -112,12 +112,13 @@ go-test/
 - **Rationale**: Clean separation between HTTP concerns and business logic
 - **Implementation**: `ItemsHandler` in `items_handler.go` for HTTP request/response handling
 
-#### **Consistent API Responses**
-- **Rationale**: Predictable response formats for frontend consumption
+#### **Helper Utilities**
+- **Rationale**: Reusable utilities for HTTP responses, validation, and domain transformations
 - **Implementation**:
-  - Single objects for create/update operations
-  - Arrays for list operations
-  - Proper HTTP status codes (200, 201, 204, 400, 404, 500)
+  - `helpers/response.go`: `Respond()`, `Error()`, `NoContent()` for consistent HTTP responses with proper status codes (200, 201, 204, 400, 404, 500)
+  - `helpers/validation.go`: `ValidationErrorResponse()` with structured, user-friendly error messages
+  - `helpers/utils.go`: Business logic utilities (`NewItemFromDTO()`, `ApplyUpdate()`, `ParseLimit()`) for domain transformations
+  - Response formats: single objects for create/update operations, arrays for list operations
 
 ### Frontend Architecture
 
@@ -130,7 +131,6 @@ go-test/
 - **Implementation**: 
   - Centralized store for items data
   - Reactive state with computed properties
-  - Immutable array updates for proper Vue reactivity
 
 #### **Component-Based Architecture**
 - **Rationale**: Reusable, maintainable, and testable components
@@ -169,8 +169,6 @@ docker compose up --build -d
 # Check service status
 docker compose ps
 
-# View logs
-docker compose logs -f
 
 # Stop services
 docker compose down
@@ -215,7 +213,6 @@ npm run test:unit
 - **Type Safety**: Strong typing throughout the application
 
 ### Frontend Security
-- **TypeScript**: Compile-time type checking
 - **Input Sanitization**: Proper handling of user inputs
 - **XSS Prevention**: Safe rendering of dynamic content
 - **CSRF Protection**: Proper API request handling
