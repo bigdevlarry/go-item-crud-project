@@ -76,7 +76,8 @@ describe('Items Store', () => {
       await store.fetchItems('test query')
 
       expect(global.fetch).toHaveBeenCalledWith(
-        expect.stringContaining('query=test+query')
+        'http://localhost:8080/items?query=test%20query',
+        undefined
       )
     })
   })

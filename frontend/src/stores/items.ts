@@ -2,9 +2,26 @@ import {defineStore} from 'pinia'
 import {computed, ref} from 'vue'
 import type {Item, ItemCreateDTO, ItemUpdateDTO} from '@/types'
 
-const API_BASE_URL = 'http://localhost:8080'
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080'
 
-export const useItemsStore = defineStore('items', () => {
+// Request helper
+async function request<T>(endpoint: string, options?: RequestInit): Promise<T> {
+  const response = await fetch(`${API_BASE_URL}${endpoint}`, options)
+  if (!response.ok) {
+    let msg = `HTTP error! status: ${response.status}`
+    try {
+      const err = await response.json()
+      if (err.error) msg = err.error
+    } catch (_) {
+      /* fallback to default error message */
+    }
+    throw new Error(msg)
+  }
+  return await response.json() as Promise<T>
+}
+
+export const useItemsStore = defineStore(
+  'items', () => {
   // State
   const items = ref<Item[]>([])
   const loading = ref(false)
@@ -33,24 +50,12 @@ export const useItemsStore = defineStore('items', () => {
       // Clear items first to prevent stale data
       items.value = []
 
-      const url = new URL(`${API_BASE_URL}/items`)
-      if (query?.trim()) {
-        url.searchParams.append('query', query.trim())
-      }
-
-      const response = await fetch(url.toString())
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
-      }
-
-      const data = await response.json()
+      const endpoint = query?.trim() ? `/items?query=${encodeURIComponent(query.trim())}` : '/items'
+      const data = await request<Item[]>(endpoint)
 
       // Handle different response formats
       if (Array.isArray(data)) {
         items.value = data
-      } else if (data.items && Array.isArray(data.items)) {
-        items.value = data.items
       } else {
         items.value = []
       }
@@ -68,7 +73,7 @@ export const useItemsStore = defineStore('items', () => {
     try {
       setError(null)
 
-      const response = await fetch(`${API_BASE_URL}/items`, {
+      const newItem = await request<Item>('/items', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -76,14 +81,7 @@ export const useItemsStore = defineStore('items', () => {
         body: JSON.stringify(itemData),
       })
 
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || `HTTP error! status: ${response.status}`)
-      }
-
-      const newItem = await response.json()
-      items.value.push(newItem)
-
+      items.value = [...items.value, newItem]
       return newItem
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to create item'
@@ -98,7 +96,7 @@ export const useItemsStore = defineStore('items', () => {
     try {
       setError(null)
 
-      const response = await fetch(`${API_BASE_URL}/items/${guid}`, {
+      const updatedItem = await request<Item>(`/items/${guid}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -106,17 +104,9 @@ export const useItemsStore = defineStore('items', () => {
         body: JSON.stringify(updateData),
       })
 
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || `HTTP error! status: ${response.status}`)
-      }
-
-      const updatedItem = await response.json()
-
-      const index = items.value.findIndex(item => item.guid === guid)
-      if (index !== -1) {
-        items.value[index] = updatedItem
-      }
+      items.value = items.value.map(item =>
+        item.guid === guid ? updatedItem : item
+      )
 
       return updatedItem
     } catch (err) {
@@ -132,20 +122,11 @@ export const useItemsStore = defineStore('items', () => {
     try {
       setError(null)
 
-      const response = await fetch(`${API_BASE_URL}/items/${guid}`, {
+      await request(`/items/${guid}`, {
         method: 'DELETE',
       })
 
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || `HTTP error! status: ${response.status}`)
-      }
-
-      const index = items.value.findIndex(item => item.guid === guid)
-      if (index !== -1) {
-        items.value.splice(index, 1)
-      }
-
+      items.value = items.value.filter(item => item.guid !== guid)
       return true
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to delete item'
