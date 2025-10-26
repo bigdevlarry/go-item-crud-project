@@ -16,7 +16,7 @@
             @click="openCreateModal"
             class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
           >
-            Add item
+            New item
           </button>
         </div>
       </div>
@@ -40,12 +40,6 @@
               Status
             </th>
             <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Debtor
-            </th>
-            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Beneficiary
-            </th>
-            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
               Created
             </th>
             <th scope="col" class="relative px-6 py-3">
@@ -60,41 +54,40 @@
             </td>
           </tr>
           <tr v-else-if="items.length === 0">
-            <td colspan="8" class="px-6 py-4 text-center text-gray-500">
+            <td colspan="6" class="px-6 py-4 text-center text-gray-500">
               {{ searchQuery ? 'No items match your search.' : 'No items found. Create your first item!' }}
             </td>
           </tr>
-          <tr v-else v-for="(item, index) in items" :key="item.guid" class="hover:bg-gray-50">
-            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-              {{ index + 1 }}
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-              £{{ formatCurrency(item.amount) }}
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap">
-              <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full"
-                    :class="getTypeBadgeClass(item.type)">
-                {{ item.type }}
-              </span>
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap">
-              <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full"
-                    :class="getStatusBadgeClass(item.status)">
-                {{ item.status }}
-              </span>
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-              {{ item.attributes?.debtor?.first_name || 'N/A' }} {{ item.attributes?.debtor?.last_name || 'N/A' }}
-              <p>{{ item.attributes?.debtor?.account?.sort_code || 'N/A' }} . {{ item.attributes?.debtor?.account?.account_number || 'N/A' }}</p>
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-              {{ item.attributes?.beneficiary?.first_name || 'N/A' }} {{ item.attributes?.beneficiary?.last_name || 'N/A' }}
-              <p> {{ item.attributes?.beneficiary?.account?.sort_code || 'N/A' }} . {{ item.attributes?.beneficiary?.account?.account_number || 'N/A' }}</p>
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-              {{ formatDate(item.created) }}
-            </td>
-              <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+          <template v-else v-for="(item, index) in items" :key="item.guid">
+            <!-- Main row -->
+            <tr
+              @click="toggleItemDetails(item.guid)"
+              class="hover:bg-gray-50 cursor-pointer"
+              :class="{ 'bg-blue-50': selectedItemGuid === item.guid }"
+              :data-item-guid="item.guid"
+            >
+              <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                {{ index + 1 }}
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                £{{ formatCurrency(item.amount) }}
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full"
+                      :class="getTypeBadgeClass(item.type)">
+                  {{ item.type }}
+                </span>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full"
+                      :class="getStatusBadgeClass(item.status)">
+                  {{ item.status }}
+                </span>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                {{ formatDate(item.created) }}
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium" @click.stop>
                 <button
                   @click="editItem(item)"
                   class="text-indigo-600 hover:text-indigo-900 mr-3 p-1 rounded-md hover:bg-indigo-50"
@@ -114,7 +107,45 @@
                   </svg>
                 </button>
               </td>
-          </tr>
+            </tr>
+
+            <!-- Expanded details row -->
+            <tr v-if="selectedItemGuid === item.guid" class="bg-blue-50">
+              <td colspan="6" class="px-6 py-4">
+                <div class="space-y-6">
+                  <!-- Item Details -->
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Debtor Details -->
+                    <div class="bg-white p-4 rounded-lg shadow-sm">
+                      <h4 class="text-sm font-semibold text-gray-900 mb-3">Debtor Details</h4>
+                      <div class="space-y-2">
+                        <p class="text-sm"><span class="font-medium">Name:</span> {{ item.attributes?.debtor?.first_name || 'N/A' }} {{ item.attributes?.debtor?.last_name || 'N/A' }}</p>
+                        <p class="text-sm"><span class="font-medium">Sort Code:</span> {{ item.attributes?.debtor?.account?.sort_code || 'N/A' }}</p>
+                        <p class="text-sm"><span class="font-medium">Account Number:</span> {{ item.attributes?.debtor?.account?.account_number || 'N/A' }}</p>
+                      </div>
+                    </div>
+
+                    <!-- Beneficiary Details -->
+                    <div class="bg-white p-4 rounded-lg shadow-sm">
+                      <h4 class="text-sm font-semibold text-gray-900 mb-3">Beneficiary Details</h4>
+                      <div class="space-y-2">
+                        <p class="text-sm"><span class="font-medium">Name:</span> {{ item.attributes?.beneficiary?.first_name || 'N/A' }} {{ item.attributes?.beneficiary?.last_name || 'N/A' }}</p>
+                        <p class="text-sm"><span class="font-medium">Sort Code:</span> {{ item.attributes?.beneficiary?.account?.sort_code || 'N/A' }}</p>
+                        <p class="text-sm"><span class="font-medium">Account Number:</span> {{ item.attributes?.beneficiary?.account?.account_number || 'N/A' }}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- GUID -->
+                  <div class="bg-white p-4 rounded-lg shadow-sm">
+                    <h4 class="text-sm font-semibold text-gray-900 mb-2">GUID</h4>
+                    <p class="text-sm font-mono text-gray-600">{{ item.guid }}</p>
+                  </div>
+
+                </div>
+              </td>
+            </tr>
+          </template>
         </tbody>
       </table>
     </div>
@@ -160,6 +191,7 @@ const showEditModal = ref(false)
 const showDeleteModal = ref(false)
 const itemToEdit = ref<Item | null>(null)
 const itemToDelete = ref<string | null>(null)
+const selectedItemGuid = ref<string | null>(null)
 
 // Computed properties from store
 const items = computed(() => itemsStore.items)
@@ -221,6 +253,28 @@ const confirmDelete = async () => {
 const cancelDelete = () => {
   showDeleteModal.value = false
   itemToDelete.value = null
+}
+
+// Collapse functionality
+const toggleItemDetails = (guid: string) => {
+  selectedItemGuid.value = selectedItemGuid.value === guid ? null : guid
+}
+
+const getSimilarEntries = (currentItem: Item): Item[] => {
+  return items.value.filter(item =>
+    item.guid !== currentItem.guid &&
+    item.type === currentItem.type &&
+    item.status === currentItem.status
+  )
+}
+
+const selectAndFocusItem = (guid: string) => {
+  selectedItemGuid.value = guid
+  // Scroll to the item (you could add smooth scrolling here)
+  const element = document.querySelector(`[data-item-guid="${guid}"]`)
+  if (element) {
+    element.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  }
 }
 
 onMounted(() => {

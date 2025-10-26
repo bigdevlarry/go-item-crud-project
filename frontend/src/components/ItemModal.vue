@@ -281,6 +281,31 @@ const toast = useToast()
 
 const isSubmitting = ref(false)
 
+const formData = reactive<ItemCreateDTO>({
+  amount: 0,
+  type: 'ADMISSION',
+  status: 'ACCEPTED',
+  created: new Date().toISOString().slice(0, 16),
+  attributes: {
+    debtor: {
+      first_name: '',
+      last_name: '',
+      account: {
+        sort_code: '',
+        account_number: ''
+      }
+    },
+    beneficiary: {
+      first_name: '',
+      last_name: '',
+      account: {
+        sort_code: '',
+        account_number: ''
+      }
+    }
+  }
+})
+
 const isEditMode = computed(() => !!props.item)
 
 // Populate form when item changes (for edit mode)
@@ -320,32 +345,6 @@ const isFormValid = computed(() => {
   ]
 
   return validations.every(Boolean)
-})
-
-
-const formData = reactive<ItemCreateDTO>({
-  amount: 0,
-  type: 'ADMISSION',
-  status: 'ACCEPTED',
-  created: new Date().toISOString().slice(0, 16),
-  attributes: {
-    debtor: {
-      first_name: '',
-      last_name: '',
-      account: {
-        sort_code: '',
-        account_number: ''
-      }
-    },
-    beneficiary: {
-      first_name: '',
-      last_name: '',
-      account: {
-        sort_code: '',
-        account_number: ''
-      }
-    }
-  }
 })
 
 const closeModal = () => {
