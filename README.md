@@ -2,13 +2,23 @@
 
 A full-stack application built with Go backend and Vue 3 frontend, demonstrating modern web development practices with comprehensive testing and Docker deployment.
 
+## 🎯 Problem Statement
+
+This project implements a CRUD API for managing items with debtor and beneficiary information. The goal is to demonstrate Go best practices including thread-safe in-memory storage, custom validation with user-friendly error messages, and comprehensive testing. The architecture applies Domain-Driven Design (DDD) principles, separating business logic from infrastructure concerns while leveraging Go's concurrency primitives for thread-safe operations.
+
+**Key Challenges Addressed:**
+- Thread-safe concurrent access using Go's `sync.RWMutex`
+- User-friendly validation errors instead of technical validation messages
+- Clean separation between HTTP handlers and business logic
+- Comprehensive testing of edge cases (empty GUIDs, enum case insensitivity, negative amounts)
+
 ## 👤 Developer Notes
 
 **Developer**: Olanrewaju Sule-Balogun
 
 **Technology Experience**:
 - **Vue.js**: Experienced with Vue 3 Composition API, Pinia, TypeScript, and modern frontend development
-- **Go**: Still relatively new to Go, but bringing experience from other ecosystems
+- **Go**: Relatively new to Go, but bringing experience from other ecosystems
   - Applying patterns from Laravel/PHP (validation, DDD, repository pattern) to Go
   - Learning Go idioms while leveraging established architectural principles
   - Exploring Gin framework, Go's type system, and idiomatic patterns
@@ -90,6 +100,20 @@ go-test/
 
 #### **Domain-Driven Design (DDD)**
 - **Rationale**: Clear separation of business logic from infrastructure concerns
+- **Architecture Flow**:
+```
+HTTP Request
+    ↓
+Handler (HTTP concerns, validation)
+    ↓
+DTO (Data Transfer Objects)
+    ↓
+Helpers (Domain transformations, utilities)
+    ↓
+Repository (Data access layer)
+    ↓
+In-Memory Storage (ItemsStore with mutex)
+```
 - **Implementation**: 
   - `domain/models/` for business entities
   - `domain/dto/` for data transfer objects
@@ -148,11 +172,20 @@ go-test/
 
 #### **Backend Testing**
 - **Feature Tests**: End-to-end API testing with real HTTP requests
+  - CRUD operations (Create, Read, Update, Delete)
+  - Validation edge cases (enum case insensitivity, GUID trimming, amount validation)
+  - Error responses (400, 404, 422 status codes)
+  - Concurrency handling via mutex protection
+  - Empty/invalid GUID handling
+  - Partial search and limit validation
 - **Manual Testing**: Comprehensive manual testing of all CRUD operations and edge cases
-- **Test Coverage**: Full coverage of API endpoints, validation, and error scenarios
 
 #### **Frontend Testing**
-- **Unit Tests**: Pinia store testing, for CRUD operations with mocked API calls
+- **Unit Tests**: Pinia store testing with mocked API calls
+  - Store CRUD operations (create, update, delete, fetch)
+  - Search functionality with query string encoding
+  - Error handling and state management
+  - Array updates for proper Vue reactivity
 
 ## 🚀 Getting Started
 
@@ -168,7 +201,6 @@ docker compose up --build -d
 
 # Check service status
 docker compose ps
-
 
 # Stop services
 docker compose down
@@ -195,33 +227,51 @@ npm run test:unit
 
 - **Frontend**: http://localhost:3000
 - **Backend API**: http://localhost:8080
-- **API Documentation**: http://localhost:8080/items
 
 ### Items Management
-- `GET /items` - List all items (with optional search query)
-- `GET /items/:guid` - Get item by GUID
-- `POST /items` - Create new item
-- `PUT /items/:guid` - Update existing item
-- `DELETE /items/:guid` - Delete item
 
-## 🔒 Security & Best Practices
+| Method | Path | Request Body | Response | Notes |
+|--------|------|--------------|----------|-------|
+| **POST** | `/items` | `{amount, type, status, attributes}` | `201` Created / `400` Validation Error / `422` Invalid Data | Creates a new item; validation errors return structured JSON |
+| **GET** | `/items?query=&limit=` | - | `200` OK (array) | Lists all items; filtered by query string |
+| **GET** | `/items/:guid` | - | `200` OK / `404` Not Found | Fetches item by GUID |
+| **PUT** | `/items/:guid` | `{amount?, type?, status?, attributes?}` | `200` OK / `400` Validation Error / `404` Not Found | Updates existing item; partial updates supported |
+| **DELETE** | `/items/:guid` | - | `204` No Content / `404` Not Found | Deletes an item by GUID |
 
-### Backend Security
-- **Input Validation**: Comprehensive validation on all inputs
-- **CORS Configuration**: Proper cross-origin resource sharing setup
-- **Error Handling**: Secure error responses without sensitive information
-- **Type Safety**: Strong typing throughout the application
+### Validation Error Response Format
 
-### Frontend Security
-- **Input Sanitization**: Proper handling of user inputs
-- **XSS Prevention**: Safe rendering of dynamic content
-- **CSRF Protection**: Proper API request handling
+```json
+{
+  "errors": {
+    "amount": "This field is required",
+    "type": "Invalid item type. Must be ADMISSION, SUBMISSION, or REVERSAL",
+    "sort_code": "Sort code must be in the format 00-00-00",
+    "account_number": "Must be exactly 8 digits"
+  }
+}
+```
+
+## ⚠️ Edge Cases & Limitations
+
+### Handled Edge Cases
+- **GUID Trimming**: Automatic whitespace trimming for GUID paths (`strings.TrimSpace()`)
+- **Empty GUIDs**: Returns 404 for empty or whitespace-only GUIDs
+- **Enum Validation**: Case-insensitive validation (accepts "admission", "ADMISSION", "Admission")
+- **Amount Validation**: Enforces positive values only (`gt=0` validation tag)
+- **Partial Search**: Supports query string matching across all item fields
+- **Limit Validation**: Handles negative values, non-numeric inputs, and enforces default limits
+- **Concurrency**: Uses `sync.RWMutex` for thread-safe operations on in-memory storage
+
+### Current Limitations
+- **In-Memory Storage**: Data is lost on application restart (will be replaced with PostgreSQL)
+- **No Authentication**: Endpoints are publicly accessible (JWT auth to be implemented)
+- **Limited Search**: Basic string matching only (Elasticsearch integration planned)
+- **No Pagination**: All matching results returned (pagination logic to be added)
 
 ## 🔮 Future Enhancements
 
 ### Potential Improvements
-- **Database Integration**: Replace in-memory storage with persistent database
-- **Authentication System**: JWT-based user authentication
-- **Advanced Search**: Full-text search with Elasticsearch
-- **Audit Logging**: Comprehensive audit trail system
----
+- **Database Integration**: Replace in-memory storage with PostgreSQL/Redis for persistence and caching
+- **Authentication System**: JWT-based authentication for production API security
+- **Logging & Monitoring**: Structured logging and application monitoring for production readiness
+- **Audit Trail**: Comprehensive audit logging for compliance and debugging
