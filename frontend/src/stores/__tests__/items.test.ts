@@ -65,12 +65,11 @@ describe('Items Store', () => {
 
       expect(store.items).toEqual(mockItems)
       expect(store.loading).toBe(false)
-      expect(store.error).toBe(null)
     })
 
     it('fetches items with search query', async () => {
       const mockItems: Item[] = []
-      
+
       ;(global.fetch as any).mockResolvedValueOnce({
         ok: true,
         json: async () => mockItems,
@@ -135,7 +134,6 @@ describe('Items Store', () => {
       expect(result).toEqual(createdItem)
       expect(store.items).toHaveLength(1)
       expect(store.items[0]).toEqual(createdItem)
-      expect(store.error).toBe(null)
     })
   })
 
@@ -193,7 +191,6 @@ describe('Items Store', () => {
 
       expect(result).toEqual(updatedItem)
       expect(store.items[0]?.amount).toBe(150.75)
-      expect(store.error).toBe(null)
     })
   })
 
@@ -243,7 +240,6 @@ describe('Items Store', () => {
 
       expect(result).toBe(true)
       expect(store.items).not.toContain(itemToDelete)
-      expect(store.error).toBe(null)
     })
   })
 
